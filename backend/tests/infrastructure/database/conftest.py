@@ -29,6 +29,11 @@ TEST_DATABASE_URL = os.getenv(
 _engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 _session_factory = async_sessionmaker(_engine, expire_on_commit=False)
 
+# Public alias so tests that need to inject a session factory (e.g. the seed
+# tests) can point it at the test database instead of the real one.
+# (Not named test_* so pytest's collector doesn't mistake it for a test.)
+session_factory_for_tests = _session_factory
+
 T = TypeVar("T")
 
 
