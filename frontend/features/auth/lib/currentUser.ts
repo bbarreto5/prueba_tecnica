@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { fetchCurrentUser } from "@/services/auth";
-import { mapBackendRole } from "@/types/role";
+import { mapBackendRole, roleRedirectPath, type Role } from "@/types/role";
 import type { AuthUser } from "../types";
 import { getSessionToken } from "./session";
 
@@ -40,6 +40,20 @@ export async function requireUser(): Promise<AuthUser> {
   const user = await getCurrentUser();
   if (!user) {
     redirect("/api/auth/session-expired");
+  }
+  return user;
+}
+
+/**
+ * Guards a role-specific dashboard page: same as `requireUser`, plus
+ * redirects to the user's own dashboard (via the single `roleRedirectPath`
+ * config) if their real, backend-verified role doesn't match this one.
+ * Reuses the already-fetched `/auth/me` result — no extra network call.
+ */
+export async function requireRole(dashboardRole: Role): Promise<AuthUser> {
+  const user = await requireUser();
+  if (user.role !== dashboardRole) {
+    redirect(roleRedirectPath[user.role]);
   }
   return user;
 }

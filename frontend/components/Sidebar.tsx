@@ -51,19 +51,21 @@ function SidebarCta({ label }: { label: string }) {
 export function Sidebar({ navItems, roleLabel, ctaLabel }: SidebarProps) {
   return (
     <>
-      <aside className="hidden w-64 shrink-0 flex-col justify-between bg-[#07131b] px-5 py-8 lg:flex">
-        <div className="flex flex-col gap-10">
-          <div className="px-2">
-            <Brand />
-          </div>
-          <nav className="flex flex-col gap-1" aria-label="Navegación principal">
-            {navItems.map((item) => (
-              <NavLink key={item.label} item={item} />
-            ))}
-          </nav>
+      <aside className="hidden w-64 shrink-0 flex-col bg-[#07131b] px-5 py-8 lg:flex">
+        <div className="px-2">
+          <Brand />
         </div>
 
-        <div className="flex flex-col gap-4">
+        <nav
+          className="mt-10 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto"
+          aria-label="Navegación principal"
+        >
+          {navItems.map((item) => (
+            <NavLink key={item.label} item={item} />
+          ))}
+        </nav>
+
+        <div className="mt-4 flex flex-col gap-4">
           {ctaLabel ? <SidebarCta label={ctaLabel} /> : null}
           <p className="px-2 text-xs text-[#6a7282]">{roleLabel}</p>
         </div>

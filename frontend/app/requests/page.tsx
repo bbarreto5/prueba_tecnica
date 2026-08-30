@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireUser } from "@/features/auth/lib/currentUser";
+import { requireRole } from "@/features/auth/lib/currentUser";
 import { Button } from "@/components/Button";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import type { SidebarNavItem } from "@/components/Sidebar";
@@ -18,7 +18,7 @@ const navItems: SidebarNavItem[] = [
 ];
 
 export default async function RequestsPage() {
-  await requireUser();
+  await requireRole("user");
 
   const companyOptions = mockCompanies.map((company) => company.name);
 

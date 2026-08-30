@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireUser } from "@/features/auth/lib/currentUser";
+import { requireRole } from "@/features/auth/lib/currentUser";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardSection } from "@/components/DashboardSection";
 import { MetricCard } from "@/components/MetricCard";
@@ -23,7 +23,7 @@ const navItems: SidebarNavItem[] = [
 ];
 
 export default async function SupportDashboardPage() {
-  await requireUser();
+  await requireRole("support");
 
   return (
     <DashboardLayout

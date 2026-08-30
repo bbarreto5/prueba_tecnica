@@ -20,10 +20,10 @@ export function DashboardLayout({
   children,
 }: DashboardLayoutProps) {
   return (
-    <div className="flex min-h-screen w-full flex-col font-sans lg:flex-row">
+    <div className="flex min-h-screen w-full flex-col font-sans lg:h-dvh lg:flex-row lg:overflow-hidden">
       <Sidebar navItems={navItems} roleLabel={roleLabel} ctaLabel={ctaLabel} />
 
-      <main className="flex-1 bg-white px-4 py-8 sm:px-8 lg:px-12">
+      <main className="flex-1 bg-white px-4 py-8 sm:px-8 lg:min-h-0 lg:overflow-y-auto lg:px-12">
         <div className="mx-auto flex max-w-6xl flex-col gap-8">
           <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
