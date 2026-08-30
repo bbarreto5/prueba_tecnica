@@ -25,6 +25,11 @@ class CompanyRepository:
         model = await self._session.get(CompanyModel, company_id)
         return company_to_domain(model) if model else None
 
+    async def get_by_name(self, name: str) -> Company | None:
+        result = await self._session.execute(select(CompanyModel).where(CompanyModel.name == name))
+        model = result.scalar_one_or_none()
+        return company_to_domain(model) if model else None
+
     async def list(self) -> list[Company]:
         result = await self._session.execute(select(CompanyModel).order_by(CompanyModel.created_at))
         return [company_to_domain(model) for model in result.scalars().all()]
