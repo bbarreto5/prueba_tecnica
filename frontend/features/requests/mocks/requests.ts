@@ -185,3 +185,11 @@ export const acmeCorpRequests = mockRequests.filter(
 export const mariaGomezRequests = mockRequests.filter(
   (request) => request.requesterName === "María Gómez",
 );
+
+export const assigneeNames = Array.from(
+  new Set(
+    mockRequests
+      .map((request) => request.assigneeName)
+      .filter((name): name is string => name !== null),
+  ),
+);

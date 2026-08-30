@@ -1,47 +1,38 @@
 import type { Metadata } from "next";
+import { Button } from "@/components/Button";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { DashboardSection } from "@/components/DashboardSection";
-import { MetricCard } from "@/components/MetricCard";
-import { userMetrics } from "@/features/dashboard/mocks/metrics";
-import { RequestTable } from "@/features/requests/components/RequestTable";
-import { mariaGomezRequests } from "@/features/requests/mocks/requests";
-import { roleLabels } from "@/types/role";
 import type { SidebarNavItem } from "@/components/Sidebar";
+import { mockCompanies } from "@/features/companies/mocks/companies";
+import { RequestsView } from "@/features/requests/components/RequestsView";
+import { requestsOverviewMetrics } from "@/features/requests/mocks/metrics";
+import { assigneeNames, mockRequests } from "@/features/requests/mocks/requests";
+import { roleLabels } from "@/types/role";
 
 export const metadata: Metadata = {
-  title: "Mis solicitudes",
+  title: "Solicitudes",
 };
 
 const navItems: SidebarNavItem[] = [
-  { label: "Mis solicitudes", href: "/requests", current: true },
+  { label: "Solicitudes", href: "/requests", current: true },
 ];
 
 export default function RequestsPage() {
+  const companyOptions = mockCompanies.map((company) => company.name);
+
   return (
     <DashboardLayout
       navItems={navItems}
       roleLabel={roleLabels.user}
-      title="Mis solicitudes"
-      description="Consulta el estado de tus solicitudes de soporte."
-      ctaLabel="Crear solicitud"
-      headerActions={
-        <button
-          type="button"
-          className="rounded-[2rem] bg-[#ff8b1a] px-5 py-2.5 text-sm font-semibold text-[#101828] transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40 focus-visible:ring-offset-2 focus-visible:outline-none"
-        >
-          + Crear solicitud
-        </button>
-      }
+      title="Solicitudes"
+      description="Consulta y da seguimiento a las solicitudes e incidencias registradas."
+      headerActions={<Button variant="primary">+ Nueva solicitud</Button>}
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {userMetrics.map((metric) => (
-          <MetricCard key={metric.label} {...metric} />
-        ))}
-      </div>
-
-      <DashboardSection title="Mis solicitudes">
-        <RequestTable requests={mariaGomezRequests} columns={["updatedAt"]} />
-      </DashboardSection>
+      <RequestsView
+        requests={mockRequests}
+        metrics={requestsOverviewMetrics}
+        companyOptions={companyOptions}
+        assigneeOptions={assigneeNames}
+      />
     </DashboardLayout>
   );
 }

@@ -1,5 +1,5 @@
 import type { BadgeTone } from "@/components/Badge";
-import type { RequestPriority, RequestStatus } from "../types";
+import type { RequestCategory, RequestPriority, RequestStatus } from "../types";
 
 export const requestStatusLabels: Record<RequestStatus, string> = {
   pending: "Pendiente",
@@ -27,4 +27,10 @@ export const requestPriorityTones: Record<RequestPriority, BadgeTone> = {
   medium: "info",
   high: "warning",
   urgent: "danger",
+};
+
+export const requestCategoryLabels: Record<RequestCategory, string> = {
+  incident: "Incidencia",
+  question: "Consulta",
+  request: "Solicitud",
 };

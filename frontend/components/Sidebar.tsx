@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/Button";
 
 export interface SidebarNavItem {
   label: string;
@@ -41,12 +42,9 @@ function NavLink({ item }: { item: SidebarNavItem }) {
 
 function SidebarCta({ label }: { label: string }) {
   return (
-    <button
-      type="button"
-      className="rounded-[2rem] bg-[#ff8b1a] px-4 py-2.5 text-sm font-semibold text-[#101828] transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07131b] focus-visible:outline-none"
-    >
+    <Button variant="primary" className="focus-visible:ring-offset-[#07131b]">
       {label}
-    </button>
+    </Button>
   );
 }
 

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { RequestSummary } from "../types";
 import { PriorityBadge } from "./PriorityBadge";
 import { StatusBadge } from "./StatusBadge";
@@ -57,7 +58,14 @@ export function RequestTable({
           ) : (
             requests.map((request) => (
               <tr key={request.id} className="border-b border-[#f3f4f6] last:border-0">
-                <td className="py-3 pr-4 font-medium text-[#101828]">{request.id}</td>
+                <td className="py-3 pr-4 font-medium text-[#101828]">
+                  <Link
+                    href={`/requests/${request.id}`}
+                    className="rounded-sm text-[#101828] underline decoration-transparent underline-offset-2 transition-colors hover:decoration-current focus-visible:decoration-current focus-visible:outline-none"
+                  >
+                    {request.id}
+                  </Link>
+                </td>
                 <td className="py-3 pr-4 text-[#101828]">{request.title}</td>
                 {showCompany ? (
                   <td className="py-3 pr-4 text-[#6a7282]">{request.companyName}</td>
