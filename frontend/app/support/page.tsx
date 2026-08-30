@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireUser } from "@/features/auth/lib/currentUser";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardSection } from "@/components/DashboardSection";
 import { MetricCard } from "@/components/MetricCard";
@@ -21,7 +22,9 @@ const navItems: SidebarNavItem[] = [
   { label: "Incidencias", href: "#" },
 ];
 
-export default function SupportDashboardPage() {
+export default async function SupportDashboardPage() {
+  await requireUser();
+
   return (
     <DashboardLayout
       navItems={navItems}

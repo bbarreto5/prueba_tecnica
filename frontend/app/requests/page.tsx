@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireUser } from "@/features/auth/lib/currentUser";
 import { Button } from "@/components/Button";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import type { SidebarNavItem } from "@/components/Sidebar";
@@ -16,7 +17,9 @@ const navItems: SidebarNavItem[] = [
   { label: "Solicitudes", href: "/requests", current: true },
 ];
 
-export default function RequestsPage() {
+export default async function RequestsPage() {
+  await requireUser();
+
   const companyOptions = mockCompanies.map((company) => company.name);
 
   return (

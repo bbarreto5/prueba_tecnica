@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireUser } from "@/features/auth/lib/currentUser";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardSection } from "@/components/DashboardSection";
 import { MetricCard } from "@/components/MetricCard";
@@ -19,7 +20,9 @@ const navItems: SidebarNavItem[] = [
   { label: "Mis solicitudes", href: "#" },
 ];
 
-export default function CompanyDashboardPage() {
+export default async function CompanyDashboardPage() {
+  await requireUser();
+
   return (
     <DashboardLayout
       navItems={navItems}
