@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.entities.user import User
+from app.domain.enums.user import UserRole
 from app.infrastructure.database.mappers import user_to_domain, user_to_model
 from app.infrastructure.database.models.user import UserModel
 
@@ -30,8 +31,18 @@ class UserRepository:
         model = result.scalar_one_or_none()
         return user_to_domain(model) if model else None
 
-    async def list(self) -> list[User]:
-        result = await self._session.execute(select(UserModel).order_by(UserModel.created_at))
+    async def list(
+        self,
+        roles: list[UserRole] | None = None,
+        company_id: UUID | None = None,
+    ) -> list[User]:
+        query = select(UserModel).order_by(UserModel.created_at)
+        if roles:
+            query = query.where(UserModel.role.in_(roles))
+        if company_id is not None:
+            query = query.where(UserModel.company_id == company_id)
+
+        result = await self._session.execute(query)
         return [user_to_domain(model) for model in result.scalars().all()]
 
     async def update(self, user: User) -> User | None:
