@@ -1,4 +1,5 @@
 import { requestPriorityLabels, requestStatusLabels } from "../lib/labels";
+import type { RequestPriority, RequestStatus } from "../types";
 
 const inputClassName =
   "rounded-[2rem] border border-[#cccccc] bg-white px-4 py-2.5 text-sm text-[#101828] placeholder:text-[#9ca3af] outline-none transition-colors focus:border-[#ff8b1a] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40";
@@ -24,15 +25,23 @@ function FilterField({
 
 function FilterSelect({
   id,
-  defaultValue,
+  value,
+  onChange,
   options,
 }: {
   id: string;
-  defaultValue: string;
+  value: string;
+  onChange: (value: string) => void;
   options: { value: string; label: string }[];
 }) {
   return (
-    <select id={id} name={id} defaultValue={defaultValue} className={inputClassName}>
+    <select
+      id={id}
+      name={id}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className={inputClassName}
+    >
       {options.map((option) => (
         <option key={option.value} value={option.value}>
           {option.label}
@@ -42,7 +51,23 @@ function FilterSelect({
   );
 }
 
-export function RequestFilters() {
+interface RequestFiltersProps {
+  search: string;
+  onSearchChange: (value: string) => void;
+  status: RequestStatus | "all";
+  onStatusChange: (value: RequestStatus | "all") => void;
+  priority: RequestPriority | "all";
+  onPriorityChange: (value: RequestPriority | "all") => void;
+}
+
+export function RequestFilters({
+  search,
+  onSearchChange,
+  status,
+  onStatusChange,
+  priority,
+  onPriorityChange,
+}: RequestFiltersProps) {
   const statusOptions = [
     { value: "all", label: "Todos los estados" },
     ...Object.entries(requestStatusLabels).map(([value, label]) => ({ value, label })),
@@ -64,17 +89,29 @@ export function RequestFilters() {
             id="search"
             name="search"
             type="search"
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Título o ID..."
             className={inputClassName}
           />
         </div>
 
         <FilterField label="Estado" htmlFor="status">
-          <FilterSelect id="status" defaultValue="all" options={statusOptions} />
+          <FilterSelect
+            id="status"
+            value={status}
+            onChange={(value) => onStatusChange(value as RequestStatus | "all")}
+            options={statusOptions}
+          />
         </FilterField>
 
         <FilterField label="Prioridad" htmlFor="priority">
-          <FilterSelect id="priority" defaultValue="all" options={priorityOptions} />
+          <FilterSelect
+            id="priority"
+            value={priority}
+            onChange={(value) => onPriorityChange(value as RequestPriority | "all")}
+            options={priorityOptions}
+          />
         </FilterField>
       </div>
     </div>

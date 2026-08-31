@@ -5,7 +5,7 @@ import { Button } from "@/components/Button";
 import { DashboardSection } from "@/components/DashboardSection";
 import { MetricCard } from "@/components/MetricCard";
 import type { RequestActionResult } from "../lib/actions";
-import type { RequestDetail } from "../types";
+import type { RequestDetail, RequestPriority, RequestStatus } from "../types";
 import { RequestFilters } from "./RequestFilters";
 import { RequestFormModal } from "./RequestFormModal";
 import { RequestTable } from "./RequestTable";
@@ -20,6 +20,9 @@ export function RequestsView({ initialRequests, createAction }: RequestsViewProp
   const [requests, setRequests] = useState(initialRequests);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
+  const [priorityFilter, setPriorityFilter] = useState<RequestPriority | "all">("all");
 
   const metrics = useMemo(
     () => [
@@ -44,6 +47,19 @@ export function RequestsView({ initialRequests, createAction }: RequestsViewProp
     ],
     [requests],
   );
+
+  const filteredRequests = useMemo(() => {
+    const normalized = search.trim().toLowerCase();
+    return requests.filter((request) => {
+      const matchesSearch =
+        !normalized ||
+        request.title.toLowerCase().includes(normalized) ||
+        request.id.toLowerCase().includes(normalized);
+      const matchesStatus = statusFilter === "all" || request.status === statusFilter;
+      const matchesPriority = priorityFilter === "all" || request.priority === priorityFilter;
+      return matchesSearch && matchesStatus && matchesPriority;
+    });
+  }, [requests, search, statusFilter, priorityFilter]);
 
   function showToast(message: string) {
     setToast(message);
@@ -70,16 +86,27 @@ export function RequestsView({ initialRequests, createAction }: RequestsViewProp
         </Button>
       </div>
 
-      <RequestFilters />
+      <RequestFilters
+        search={search}
+        onSearchChange={setSearch}
+        status={statusFilter}
+        onStatusChange={setStatusFilter}
+        priority={priorityFilter}
+        onPriorityChange={setPriorityFilter}
+      />
 
       {requests.length === 0 ? (
         <RequestsEmptyState onCreate={() => setIsModalOpen(true)} />
       ) : (
         <DashboardSection
           title="Todas las solicitudes"
-          description="Solicitudes e incidencias registradas en tu compañía."
+          description={`${filteredRequests.length} de ${requests.length} solicitudes`}
         >
-          <RequestTable requests={requests} columns={["updatedAt"]} titleColumnLabel="Asunto" />
+          <RequestTable
+            requests={filteredRequests}
+            columns={["updatedAt"]}
+            titleColumnLabel="Asunto"
+          />
         </DashboardSection>
       )}
 
