@@ -46,17 +46,22 @@ export async function requireUser(): Promise<AuthUser> {
 }
 
 /**
- * Guards a role-specific dashboard page: same as `requireUser`, plus
+ * Guards a page shared by more than one role: same as `requireUser`, plus
  * redirects to the user's own dashboard (via the single `roleRedirectPath`
- * config) if their real, backend-verified role doesn't match this one.
+ * config) if their real, backend-verified role isn't in `allowedRoles`.
  * Reuses the already-fetched `/auth/me` result — no extra network call.
  */
-export async function requireRole(dashboardRole: Role): Promise<AuthUser> {
+export async function requireAnyRole(allowedRoles: Role[]): Promise<AuthUser> {
   const user = await requireUser();
-  if (user.role !== dashboardRole) {
+  if (!allowedRoles.includes(user.role)) {
     redirect(roleRedirectPath[user.role]);
   }
   return user;
+}
+
+/** Guards a single role's own dashboard page. See `requireAnyRole` for pages shared by more than one role. */
+export async function requireRole(dashboardRole: Role): Promise<AuthUser> {
+  return requireAnyRole([dashboardRole]);
 }
 
 /** Maps the single `AuthUser` source of truth to the plain display shape `Sidebar` (a domain-agnostic component) expects. */
