@@ -10,7 +10,7 @@ import {
   returnRequest,
   takeRequest,
 } from "@/services/requests";
-import { createRequestMessage } from "@/services/messages";
+import { createRequestMessage, listRequestMessages } from "@/services/messages";
 import { mapCategoryToBackend, mapPriorityToBackend, toMessage, toRequestDetail } from "./mappers";
 import type { Message, RequestCategory, RequestDetail, RequestPriority } from "../types";
 
@@ -19,6 +19,10 @@ export type RequestActionResult =
   | { ok: false; error: string };
 
 export type MessageActionResult = { ok: true; message: Message } | { ok: false; error: string };
+
+export type MessagesActionResult =
+  | { ok: true; messages: Message[] }
+  | { ok: false; error: string };
 
 const VALID_CATEGORIES: readonly string[] = ["incident", "question", "request"];
 const VALID_PRIORITIES: readonly string[] = ["low", "medium", "high", "urgent"];
@@ -154,6 +158,29 @@ export async function sendMessageAction(
   try {
     const created = await createRequestMessage(token, requestId, content);
     return { ok: true, message: toMessage(created) };
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      redirect("/api/auth/session-expired");
+    }
+    return { ok: false, error: describeMessageError(error) };
+  }
+}
+
+/**
+ * Fetches messages for a single request on demand — used by the client-history
+ * modal, which only needs them for the one row the user opens, not the whole
+ * history list (that would be N+1). A Server Action (not the plain `getRequestMessages`
+ * query) because it's called from a Client Component.
+ */
+export async function getRequestMessagesAction(requestId: string): Promise<MessagesActionResult> {
+  const token = await getSessionToken();
+  if (!token) {
+    return { ok: false, error: "Tu sesión no es válida. Vuelve a iniciar sesión." };
+  }
+
+  try {
+    const messages = await listRequestMessages(token, requestId);
+    return { ok: true, messages: messages.map(toMessage) };
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
       redirect("/api/auth/session-expired");

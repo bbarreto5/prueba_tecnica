@@ -33,9 +33,9 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
         aria-modal="true"
         aria-label={title}
         onClick={(event) => event.stopPropagation()}
-        className="w-full max-w-md rounded-xl bg-[#07131b] p-6 shadow-[0_0_12px_#09c6b840] sm:p-8"
+        className="flex max-h-[85vh] w-full max-w-md flex-col rounded-xl bg-[#07131b] p-6 shadow-[0_0_12px_#09c6b840] sm:p-8"
       >
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex shrink-0 items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-white">{title}</h2>
           <button
             type="button"
@@ -47,7 +47,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
           </button>
         </div>
 
-        <div className="mt-6">{children}</div>
+        <div className="mt-6 overflow-y-auto">{children}</div>
       </div>
     </div>
   );

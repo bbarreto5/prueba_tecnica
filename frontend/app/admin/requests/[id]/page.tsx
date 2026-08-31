@@ -7,20 +7,23 @@ import type { SidebarNavItem } from "@/components/Sidebar";
 import { logoutAction } from "@/features/auth/lib/actions";
 import { requireAnyRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { getCompanies } from "@/features/companies/lib/queries";
+import { ClientHistorySection } from "@/features/requests/components/ClientHistorySection";
 import { PriorityBadge } from "@/features/requests/components/PriorityBadge";
 import { RequestActions } from "@/features/requests/components/RequestActions";
 import { RequestMessages } from "@/features/requests/components/RequestMessages";
 import { ReturnToQueueAction } from "@/features/requests/components/ReturnToQueueAction";
 import { StatusBadge } from "@/features/requests/components/StatusBadge";
 import {
+  getRequestMessagesAction,
   resolveRequestAction,
   returnRequestAction,
   sendMessageAction,
   takeRequestAction,
 } from "@/features/requests/lib/actions";
-import { requestCategoryLabels } from "@/features/requests/lib/labels";
+import { buildRequestInfoRows } from "@/features/requests/lib/infoRows";
+import { withResolvedNames } from "@/features/requests/lib/mappers";
 import { getRequestCapabilities } from "@/features/requests/lib/permissions";
-import { getRequestDetail, getRequestMessages } from "@/features/requests/lib/queries";
+import { getRequestDetail, getRequestMessages, getRequests } from "@/features/requests/lib/queries";
 import type { Message, RequestDetail } from "@/features/requests/types";
 import { getUsers } from "@/features/users/lib/queries";
 import { ApiError } from "@/lib/api-client";
@@ -94,20 +97,43 @@ export default async function AdminRequestDetailPage({
   }
 
   // Best-effort id→name resolution — same reasoning as the admin requests list.
-  let companyName: string | undefined;
-  let requesterName: string | undefined;
+  // Built as maps (not single lookups) so the same fetch also resolves names
+  // for the client-history section below, without a second round of requests.
+  let companyNames = new Map<string, string>();
+  let userNames = new Map<string, string>();
   try {
     const companies = await getCompanies();
-    companyName = companies.find((company) => company.id === request.companyId)?.name;
+    companyNames = new Map(companies.map((company) => [company.id, company.name]));
   } catch {
-    // Falls back to the raw id below.
+    // Falls back to blank company names below.
   }
   try {
     const users = await getUsers();
-    requesterName = users.find((u) => u.id === request.createdBy)?.name;
+    userNames = new Map(users.map((u) => [u.id, u.name]));
   } catch {
-    // Falls back to the raw id below.
+    // Falls back to blank requester names below.
   }
+  const companyName = companyNames.get(request.companyId);
+  const requesterName = userNames.get(request.createdBy);
+
+  // Client history: other requests from the same company, newest-first.
+  // GET /requests has no query params (see AGENTS.md/backend contract), so
+  // this reuses the same "fetch all, filter client-side" the rest of
+  // /admin/requests already does — no new endpoint, no N+1 (a single fetch
+  // serves the whole history list; opening "Ver detalle" reuses the object
+  // already in hand, no per-row request).
+  let clientHistory: RequestDetail[] = [];
+  let historyLoadError = false;
+  try {
+    const allRequests = await getRequests();
+    clientHistory = allRequests
+      .filter((r) => r.companyId === request.companyId && r.id !== request.id)
+      .slice()
+      .reverse();
+  } catch {
+    historyLoadError = true;
+  }
+  const enrichedHistory = withResolvedNames(clientHistory, companyNames, userNames, user.id);
 
   const { canTake, canReturn, canResolve, canReply } = getRequestCapabilities(request, user);
   const isClosed = request.status === "resolved" || request.status === "cancelled";
@@ -121,26 +147,7 @@ export default async function AdminRequestDetailPage({
       ? "Esta solicitud no está asignada a ti. Tómala para poder responder."
       : "Esta solicitud está asignada a otro agente. Solo el agente asignado puede responder.";
 
-  const infoRows = [
-    { label: "Categoría", value: requestCategoryLabels[request.category] },
-    { label: "Empresa", value: companyName ?? request.companyId },
-    {
-      label: "Solicitante",
-      value: request.createdBy === user.id ? "Tú" : (requesterName ?? request.createdBy),
-    },
-    {
-      label: "Responsable",
-      value:
-        request.assignedTo === null
-          ? "Sin asignar"
-          : request.assignedTo === user.id
-            ? "Tú"
-            : "Asignada a otro agente",
-    },
-    { label: "Fecha de creación", value: request.createdAt },
-    { label: "Última actualización", value: request.updatedAt },
-    ...(request.resolvedAt ? [{ label: "Fecha de resolución", value: request.resolvedAt }] : []),
-  ];
+  const infoRows = buildRequestInfoRows(request, user.id, companyName, requesterName);
 
   return (
     <DashboardLayout
@@ -230,6 +237,23 @@ export default async function AdminRequestDetailPage({
           </DashboardSection>
         </div>
       </div>
+
+      <DashboardSection
+        title="Historial del cliente"
+        description="Otras solicitudes registradas por esta empresa."
+      >
+        {historyLoadError ? (
+          <p className="text-sm text-[#6a7282]">
+            No pudimos cargar el historial del cliente. Intenta recargar la página.
+          </p>
+        ) : (
+          <ClientHistorySection
+            history={enrichedHistory}
+            currentUserId={user.id}
+            getMessagesAction={getRequestMessagesAction}
+          />
+        )}
+      </DashboardSection>
     </DashboardLayout>
   );
 }

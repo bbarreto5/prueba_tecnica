@@ -4,6 +4,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import { Button } from "@/components/Button";
 import type { MessageActionResult } from "../lib/actions";
 import type { Message } from "../types";
+import { MessageBubbleList } from "./MessageBubbleList";
 
 interface RequestMessagesProps {
   requestId: string;
@@ -47,13 +48,6 @@ export function RequestMessages({
     setMessages(initialMessages);
   }
 
-  function authorLabel(authorId: string): string {
-    if (authorId === currentUserId) return "Tú";
-    if (authorId === assigneeId) return "Soporte";
-    if (authorId === requesterId) return "Solicitante";
-    return "Equipo";
-  }
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!content.trim()) return;
@@ -82,41 +76,12 @@ export function RequestMessages({
 
   return (
     <div className="flex flex-col gap-6">
-      {messages.length === 0 ? (
-        <p className="text-sm text-[#6a7282]">No hay mensajes todavía.</p>
-      ) : (
-        <ol className="flex flex-col gap-4">
-          {messages.map((message) => {
-            const isOwn = message.authorId === currentUserId;
-            return (
-              <li
-                key={message.id}
-                className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[85%] rounded-[1.25rem] border px-4 py-3 sm:max-w-[70%] ${
-                    isOwn
-                      ? "border-transparent bg-[#07131b] text-white"
-                      : "border-[#e5e5e5] bg-white text-[#101828]"
-                  }`}
-                >
-                  <p
-                    className={`text-xs font-semibold ${isOwn ? "text-[#9cb5c4]" : "text-[#6a7282]"}`}
-                  >
-                    {authorLabel(message.authorId)}
-                  </p>
-                  <p className="mt-1 text-sm leading-relaxed">{message.content}</p>
-                  <p
-                    className={`mt-1.5 text-xs ${isOwn ? "text-[#6a7282]" : "text-[#9ca3af]"}`}
-                  >
-                    {message.createdAt}
-                  </p>
-                </div>
-              </li>
-            );
-          })}
-        </ol>
-      )}
+      <MessageBubbleList
+        messages={messages}
+        currentUserId={currentUserId}
+        requesterId={requesterId}
+        assigneeId={assigneeId}
+      />
 
       {canSend ? (
         <form
