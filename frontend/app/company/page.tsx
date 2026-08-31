@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 
 const navItems: SidebarNavItem[] = [
   { label: "Dashboard", href: "/company", current: true },
+  { label: "Usuarios", href: "/company/users" },
   { label: "Mis solicitudes", href: "#" },
 ];
 

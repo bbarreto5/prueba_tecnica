@@ -3,11 +3,19 @@ import type { User } from "../types";
 
 interface UserTableProps {
   users: User[];
-  companiesById: Map<string, string>;
+  companiesById?: Map<string, string>;
+  showCompanyColumn?: boolean;
   onEdit: (user: User) => void;
 }
 
-export function UserTable({ users, companiesById, onEdit }: UserTableProps) {
+export function UserTable({
+  users,
+  companiesById,
+  showCompanyColumn = true,
+  onEdit,
+}: UserTableProps) {
+  const columnCount = showCompanyColumn ? 5 : 4;
+
   return (
     <div className="-mx-6 overflow-x-auto px-6 sm:-mx-8 sm:px-8">
       <table className="w-full min-w-[640px] border-collapse text-left text-sm">
@@ -16,14 +24,14 @@ export function UserTable({ users, companiesById, onEdit }: UserTableProps) {
             <th className="py-3 pr-4 font-medium">Nombre</th>
             <th className="py-3 pr-4 font-medium">Correo</th>
             <th className="py-3 pr-4 font-medium">Rol</th>
-            <th className="py-3 pr-4 font-medium">Compañía</th>
+            {showCompanyColumn ? <th className="py-3 pr-4 font-medium">Compañía</th> : null}
             <th className="py-3 pr-0 font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {users.length === 0 ? (
             <tr>
-              <td colSpan={5} className="py-6 text-center text-sm text-[#6a7282]">
+              <td colSpan={columnCount} className="py-6 text-center text-sm text-[#6a7282]">
                 No se encontraron usuarios para tu búsqueda.
               </td>
             </tr>
@@ -33,9 +41,11 @@ export function UserTable({ users, companiesById, onEdit }: UserTableProps) {
                 <td className="py-3 pr-4 font-medium text-[#101828]">{user.name}</td>
                 <td className="py-3 pr-4 text-[#6a7282]">{user.email}</td>
                 <td className="py-3 pr-4 text-[#6a7282]">{roleLabels[user.role]}</td>
-                <td className="py-3 pr-4 text-[#6a7282]">
-                  {user.companyId ? (companiesById.get(user.companyId) ?? "—") : "—"}
-                </td>
+                {showCompanyColumn ? (
+                  <td className="py-3 pr-4 text-[#6a7282]">
+                    {user.companyId ? (companiesById?.get(user.companyId) ?? "—") : "—"}
+                  </td>
+                ) : null}
                 <td className="py-3 pr-0">
                   <button
                     type="button"

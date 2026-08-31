@@ -5,7 +5,7 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import type { Company } from "@/features/companies/types";
 import { roleLabels, type Role } from "@/types/role";
-import type { UserActionResult } from "../lib/actions";
+import type { UserActionOptions, UserActionResult } from "../lib/actions";
 import { getDefaultRole, ROLES_REQUIRING_COMPANY } from "../lib/permissions";
 import type { User } from "../types";
 
@@ -13,12 +13,18 @@ interface UserFormModalProps {
   isOpen: boolean;
   user: User | null;
   assignableRoles: Role[];
-  companies: Company[];
-  companiesLoadError: boolean;
+  /** false when the company is implicit from the session (e.g. `/company/users`) — hides the selector entirely, regardless of role. */
+  showCompanyField?: boolean;
+  companies?: Company[];
+  companiesLoadError?: boolean;
   onClose: () => void;
   onSuccess: (user: User, mode: "create" | "edit") => void;
-  createAction: (formData: FormData) => Promise<UserActionResult>;
-  updateAction: (id: string, formData: FormData) => Promise<UserActionResult>;
+  createAction: (formData: FormData, options?: UserActionOptions) => Promise<UserActionResult>;
+  updateAction: (
+    id: string,
+    formData: FormData,
+    options?: UserActionOptions,
+  ) => Promise<UserActionResult>;
 }
 
 const inputClassName =
@@ -28,8 +34,9 @@ export function UserFormModal({
   isOpen,
   user,
   assignableRoles,
-  companies,
-  companiesLoadError,
+  showCompanyField = true,
+  companies = [],
+  companiesLoadError = false,
   onClose,
   onSuccess,
   createAction,
@@ -42,8 +49,9 @@ export function UserFormModal({
     user?.role ?? getDefaultRole(assignableRoles),
   );
 
-  const requiresCompany = ROLES_REQUIRING_COMPANY.includes(selectedRole);
+  const requiresCompany = showCompanyField && ROLES_REQUIRING_COMPANY.includes(selectedRole);
   const blockedByMissingCompanies = requiresCompany && companiesLoadError;
+  const actionOptions: UserActionOptions = { skipCompanySelection: !showCompanyField };
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,8 +60,8 @@ export function UserFormModal({
 
     startTransition(async () => {
       const result = user
-        ? await updateAction(user.id, formData)
-        : await createAction(formData);
+        ? await updateAction(user.id, formData, actionOptions)
+        : await createAction(formData, actionOptions);
 
       if (result.ok) {
         onSuccess(result.user, mode);
@@ -135,21 +143,33 @@ export function UserFormModal({
           <label htmlFor="user-role" className="text-xs font-medium text-[#9cb5c4]">
             Rol
           </label>
-          <select
-            id="user-role"
-            name="role"
-            required
-            disabled={isPending}
-            value={selectedRole}
-            onChange={(event) => setSelectedRole(event.target.value as Role)}
-            className={inputClassName}
-          >
-            {assignableRoles.map((role) => (
-              <option key={role} value={role}>
-                {roleLabels[role]}
-              </option>
-            ))}
-          </select>
+          {assignableRoles.length > 1 ? (
+            <select
+              id="user-role"
+              name="role"
+              required
+              disabled={isPending}
+              value={selectedRole}
+              onChange={(event) => setSelectedRole(event.target.value as Role)}
+              className={inputClassName}
+            >
+              {assignableRoles.map((role) => (
+                <option key={role} value={role}>
+                  {roleLabels[role]}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <>
+              <input type="hidden" name="role" value={assignableRoles[0]} />
+              <p
+                id="user-role"
+                className="rounded-[2rem] border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white"
+              >
+                {roleLabels[assignableRoles[0]]}
+              </p>
+            </>
+          )}
         </div>
 
         {requiresCompany ? (

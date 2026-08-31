@@ -5,7 +5,7 @@ import { Button } from "@/components/Button";
 import { DashboardSection } from "@/components/DashboardSection";
 import type { Company } from "@/features/companies/types";
 import type { Role } from "@/types/role";
-import type { UserActionResult } from "../lib/actions";
+import type { UserActionOptions, UserActionResult } from "../lib/actions";
 import type { User } from "../types";
 import { UserFormModal } from "./UserFormModal";
 import { UsersEmptyState } from "./UsersEmptyState";
@@ -13,18 +13,27 @@ import { UserTable } from "./UserTable";
 
 interface UsersViewProps {
   initialUsers: User[];
-  companies: Company[];
-  companiesLoadError: boolean;
+  companies?: Company[];
+  companiesLoadError?: boolean;
   assignableRoles: Role[];
-  createAction: (formData: FormData) => Promise<UserActionResult>;
-  updateAction: (id: string, formData: FormData) => Promise<UserActionResult>;
+  /** false when the company is implicit from the session (e.g. `/company/users`). */
+  showCompanyField?: boolean;
+  showCompanyColumn?: boolean;
+  createAction: (formData: FormData, options?: UserActionOptions) => Promise<UserActionResult>;
+  updateAction: (
+    id: string,
+    formData: FormData,
+    options?: UserActionOptions,
+  ) => Promise<UserActionResult>;
 }
 
 export function UsersView({
   initialUsers,
-  companies,
-  companiesLoadError,
+  companies = [],
+  companiesLoadError = false,
   assignableRoles,
+  showCompanyField = true,
+  showCompanyColumn = true,
   createAction,
   updateAction,
 }: UsersViewProps) {
@@ -105,7 +114,12 @@ export function UsersView({
           title="Todos los usuarios"
           description={`${filteredUsers.length} de ${users.length} usuarios`}
         >
-          <UserTable users={filteredUsers} companiesById={companiesById} onEdit={openEditModal} />
+          <UserTable
+            users={filteredUsers}
+            companiesById={companiesById}
+            showCompanyColumn={showCompanyColumn}
+            onEdit={openEditModal}
+          />
         </DashboardSection>
       )}
 
@@ -113,6 +127,7 @@ export function UsersView({
         isOpen={isModalOpen}
         user={editingUser}
         assignableRoles={assignableRoles}
+        showCompanyField={showCompanyField}
         companies={companies}
         companiesLoadError={companiesLoadError}
         onClose={() => setIsModalOpen(false)}

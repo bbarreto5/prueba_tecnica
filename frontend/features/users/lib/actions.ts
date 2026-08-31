@@ -11,23 +11,41 @@ import type { User } from "../types";
 
 export type UserActionResult = { ok: true; user: User } | { ok: false; error: string };
 
+/**
+ * `skipCompanySelection`: set by callers whose company is implicit from the
+ * session (e.g. `/company/users`, where a COMPANY-role user manages only
+ * their own company). In that case no company select is rendered, so we
+ * neither require nor read a `companyId` field — `company_id` is sent as
+ * `null` and the backend auto-assigns/preserves the caller's own company
+ * (see `create_user.py`/`update_user.py`: for a COMPANY caller it always
+ * resolves to `current_user.company_id` regardless of what's sent).
+ */
+export interface UserActionOptions {
+  skipCompanySelection?: boolean;
+}
+
 const VALID_ROLES: readonly string[] = ["admin", "support", "company", "user"];
 
 function parseRole(value: FormDataEntryValue | null): Role | null {
   return typeof value === "string" && VALID_ROLES.includes(value) ? (value as Role) : null;
 }
 
-export async function createUserAction(formData: FormData): Promise<UserActionResult> {
+export async function createUserAction(
+  formData: FormData,
+  options: UserActionOptions = {},
+): Promise<UserActionResult> {
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const role = parseRole(formData.get("role"));
-  const companyId = String(formData.get("companyId") ?? "").trim() || null;
+  const companyId = options.skipCompanySelection
+    ? null
+    : String(formData.get("companyId") ?? "").trim() || null;
 
   if (!name || !email || !password || !role) {
     return { ok: false, error: "Completa todos los campos requeridos." };
   }
-  if (ROLES_REQUIRING_COMPANY.includes(role) && !companyId) {
+  if (!options.skipCompanySelection && ROLES_REQUIRING_COMPANY.includes(role) && !companyId) {
     return { ok: false, error: "Selecciona una compañía para este rol." };
   }
 
@@ -42,7 +60,11 @@ export async function createUserAction(formData: FormData): Promise<UserActionRe
       email,
       password,
       role: mapRoleToBackend(role),
-      company_id: ROLES_REQUIRING_COMPANY.includes(role) ? companyId : null,
+      company_id: options.skipCompanySelection
+        ? null
+        : ROLES_REQUIRING_COMPANY.includes(role)
+          ? companyId
+          : null,
     });
     return { ok: true, user: toUser(created) };
   } catch (error) {
@@ -56,17 +78,20 @@ export async function createUserAction(formData: FormData): Promise<UserActionRe
 export async function updateUserAction(
   id: string,
   formData: FormData,
+  options: UserActionOptions = {},
 ): Promise<UserActionResult> {
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "").trim();
   const role = parseRole(formData.get("role"));
-  const companyId = String(formData.get("companyId") ?? "").trim() || null;
+  const companyId = options.skipCompanySelection
+    ? null
+    : String(formData.get("companyId") ?? "").trim() || null;
 
   if (!name || !email || !role) {
     return { ok: false, error: "Completa todos los campos requeridos." };
   }
-  if (ROLES_REQUIRING_COMPANY.includes(role) && !companyId) {
+  if (!options.skipCompanySelection && ROLES_REQUIRING_COMPANY.includes(role) && !companyId) {
     return { ok: false, error: "Selecciona una compañía para este rol." };
   }
 
@@ -81,7 +106,11 @@ export async function updateUserAction(
       email,
       ...(password ? { password } : {}),
       role: mapRoleToBackend(role),
-      company_id: ROLES_REQUIRING_COMPANY.includes(role) ? companyId : null,
+      company_id: options.skipCompanySelection
+        ? null
+        : ROLES_REQUIRING_COMPANY.includes(role)
+          ? companyId
+          : null,
     });
     return { ok: true, user: toUser(updated) };
   } catch (error) {
