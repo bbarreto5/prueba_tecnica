@@ -13,7 +13,6 @@ import { requestCategoryLabels } from "@/features/requests/lib/labels";
 import { getRequestMessages } from "@/features/requests/mocks/messages";
 import { requestDetails, getRequestDetail } from "@/features/requests/mocks/requestDetails";
 import { getRequestTimeline } from "@/features/requests/mocks/timeline";
-import { roleLabels } from "@/types/role";
 
 const navItems: SidebarNavItem[] = [
   { label: "Solicitudes", href: "/requests", current: true },
@@ -56,7 +55,6 @@ export default async function RequestDetailPage({ params }: PageProps<"/requests
   return (
     <DashboardLayout
       navItems={navItems}
-      roleLabel={roleLabels.user}
       title={request.title}
       description={`${request.id} · Creada el ${request.createdAt}`}
       headerActions={

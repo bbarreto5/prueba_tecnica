@@ -1,8 +1,9 @@
-import { Sidebar, type SidebarNavItem } from "@/components/Sidebar";
+import { Sidebar, type SidebarNavItem, type SidebarUser } from "@/components/Sidebar";
 
 interface DashboardLayoutProps {
   navItems: SidebarNavItem[];
-  roleLabel: string;
+  user?: SidebarUser;
+  logoutAction?: (formData: FormData) => Promise<void>;
   title: string;
   description?: string;
   ctaLabel?: string;
@@ -12,7 +13,8 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({
   navItems,
-  roleLabel,
+  user,
+  logoutAction,
   title,
   description,
   ctaLabel,
@@ -21,7 +23,7 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   return (
     <div className="flex min-h-screen w-full flex-col font-sans lg:h-dvh lg:flex-row lg:overflow-hidden">
-      <Sidebar navItems={navItems} roleLabel={roleLabel} ctaLabel={ctaLabel} />
+      <Sidebar navItems={navItems} user={user} logoutAction={logoutAction} ctaLabel={ctaLabel} />
 
       <main className="flex-1 bg-white px-4 py-8 sm:px-8 lg:min-h-0 lg:overflow-y-auto lg:px-12">
         <div className="mx-auto flex max-w-6xl flex-col gap-8">

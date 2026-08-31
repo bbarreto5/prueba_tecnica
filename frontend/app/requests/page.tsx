@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { requireRole } from "@/features/auth/lib/currentUser";
+import { logoutAction } from "@/features/auth/lib/actions";
+import { requireRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { Button } from "@/components/Button";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import type { SidebarNavItem } from "@/components/Sidebar";
@@ -7,7 +8,6 @@ import { mockCompanies } from "@/features/companies/mocks/companies";
 import { RequestsView } from "@/features/requests/components/RequestsView";
 import { requestsOverviewMetrics } from "@/features/requests/mocks/metrics";
 import { assigneeNames, mockRequests } from "@/features/requests/mocks/requests";
-import { roleLabels } from "@/types/role";
 
 export const metadata: Metadata = {
   title: "Solicitudes",
@@ -18,14 +18,15 @@ const navItems: SidebarNavItem[] = [
 ];
 
 export default async function RequestsPage() {
-  await requireRole("user");
+  const user = await requireRole("user");
 
   const companyOptions = mockCompanies.map((company) => company.name);
 
   return (
     <DashboardLayout
       navItems={navItems}
-      roleLabel={roleLabels.user}
+      user={toSidebarUser(user)}
+      logoutAction={logoutAction}
       title="Solicitudes"
       description="Consulta y da seguimiento a las solicitudes e incidencias registradas."
       headerActions={<Button variant="primary">+ Nueva solicitud</Button>}

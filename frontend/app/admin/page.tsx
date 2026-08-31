@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { requireRole } from "@/features/auth/lib/currentUser";
+import { logoutAction } from "@/features/auth/lib/actions";
+import { requireRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardSection } from "@/components/DashboardSection";
 import { MetricCard } from "@/components/MetricCard";
@@ -8,7 +9,6 @@ import { mockCompanies } from "@/features/companies/mocks/companies";
 import { adminMetrics } from "@/features/dashboard/mocks/metrics";
 import { RequestTable } from "@/features/requests/components/RequestTable";
 import { recentRequests } from "@/features/requests/mocks/requests";
-import { roleLabels } from "@/types/role";
 import type { SidebarNavItem } from "@/components/Sidebar";
 
 export const metadata: Metadata = {
@@ -23,12 +23,13 @@ const navItems: SidebarNavItem[] = [
 ];
 
 export default async function AdminDashboardPage() {
-  await requireRole("admin");
+  const user = await requireRole("admin");
 
   return (
     <DashboardLayout
       navItems={navItems}
-      roleLabel={roleLabels.admin}
+      user={toSidebarUser(user)}
+      logoutAction={logoutAction}
       title="Panel de administración"
       description="Visión global de empresas, usuarios y solicitudes en la plataforma."
     >

@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/features/auth/lib/currentUser";
 import { LoginForm } from "@/features/auth/components/LoginForm";
+import { roleRedirectPath } from "@/types/role";
 
 export const metadata: Metadata = {
   title: "Iniciar sesión",
 };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const user = await getCurrentUser();
+  if (user) {
+    redirect(roleRedirectPath[user.role]);
+  }
+
   return (
     <div className="flex min-h-screen w-full font-sans">
       <section

@@ -1,6 +1,5 @@
 import { Sidebar, type SidebarNavItem } from "@/components/Sidebar";
 import { SkeletonBlock } from "@/components/SkeletonBlock";
-import { roleLabels } from "@/types/role";
 
 const navItems: SidebarNavItem[] = [
   { label: "Solicitudes", href: "/requests", current: true },
@@ -9,7 +8,7 @@ const navItems: SidebarNavItem[] = [
 export default function RequestsLoading() {
   return (
     <div className="flex min-h-screen w-full flex-col font-sans lg:flex-row">
-      <Sidebar navItems={navItems} roleLabel={roleLabels.user} />
+      <Sidebar navItems={navItems} />
 
       <main className="flex-1 bg-white px-4 py-8 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-6xl flex-col gap-8">

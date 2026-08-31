@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { ApiError } from "@/lib/api-client";
 import { fetchCurrentUser, login } from "@/services/auth";
 import { mapBackendRole, roleRedirectPath } from "@/types/role";
-import { setSessionCookie } from "./session";
+import { clearSessionCookie, setSessionCookie } from "./session";
 
 export interface LoginFormState {
   error?: string;
@@ -37,6 +37,21 @@ export async function loginAction(
     if (isRedirectError(error)) throw error;
     return { error: "No pudimos completar el inicio de sesión. Intenta nuevamente." };
   }
+}
+
+/**
+ * No `POST /auth/logout` exists (JWT is stateless) — logging out is purely
+ * a local concern: clear the session cookie and send the user to /login.
+ * Best-effort on the clear so this always completes even if something
+ * unexpected happens, since there's no backend call that could fail here.
+ */
+export async function logoutAction(): Promise<void> {
+  try {
+    await clearSessionCookie();
+  } catch {
+    // Still redirect below even if clearing the cookie unexpectedly fails.
+  }
+  redirect("/login");
 }
 
 function describeLoginError(error: unknown): string {

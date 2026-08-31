@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { requireRole } from "@/features/auth/lib/currentUser";
+import { logoutAction } from "@/features/auth/lib/actions";
+import { requireRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardSection } from "@/components/DashboardSection";
 import { MetricCard } from "@/components/MetricCard";
@@ -9,7 +10,6 @@ import {
   openWorkQueueRequests,
   priorityQueueRequests,
 } from "@/features/requests/mocks/requests";
-import { roleLabels } from "@/types/role";
 import type { SidebarNavItem } from "@/components/Sidebar";
 
 export const metadata: Metadata = {
@@ -23,12 +23,13 @@ const navItems: SidebarNavItem[] = [
 ];
 
 export default async function SupportDashboardPage() {
-  await requireRole("support");
+  const user = await requireRole("support");
 
   return (
     <DashboardLayout
       navItems={navItems}
-      roleLabel={roleLabels.support}
+      user={toSidebarUser(user)}
+      logoutAction={logoutAction}
       title="Panel de soporte"
       description="Qué tienes pendiente y qué deberías atender primero."
     >

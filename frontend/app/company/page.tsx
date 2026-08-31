@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { requireRole } from "@/features/auth/lib/currentUser";
+import { logoutAction } from "@/features/auth/lib/actions";
+import { requireRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardSection } from "@/components/DashboardSection";
 import { MetricCard } from "@/components/MetricCard";
@@ -8,7 +9,6 @@ import { RecentActivityFeed } from "@/features/requests/components/RecentActivit
 import { RequestTable } from "@/features/requests/components/RequestTable";
 import { acmeCorpActivity } from "@/features/requests/mocks/activity";
 import { acmeCorpRequests } from "@/features/requests/mocks/requests";
-import { roleLabels } from "@/types/role";
 import type { SidebarNavItem } from "@/components/Sidebar";
 
 export const metadata: Metadata = {
@@ -21,12 +21,13 @@ const navItems: SidebarNavItem[] = [
 ];
 
 export default async function CompanyDashboardPage() {
-  await requireRole("company");
+  const user = await requireRole("company");
 
   return (
     <DashboardLayout
       navItems={navItems}
-      roleLabel={roleLabels.company}
+      user={toSidebarUser(user)}
+      logoutAction={logoutAction}
       title="Panel de Acme Corp"
       description="Qué está pasando con tus solicitudes."
       ctaLabel="Crear solicitud"

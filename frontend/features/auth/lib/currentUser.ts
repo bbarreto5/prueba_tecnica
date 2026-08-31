@@ -1,7 +1,8 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
+import type { SidebarUser } from "@/components/Sidebar";
 import { fetchCurrentUser } from "@/services/auth";
-import { mapBackendRole, roleRedirectPath, type Role } from "@/types/role";
+import { mapBackendRole, roleLabels, roleRedirectPath, type Role } from "@/types/role";
 import type { AuthUser } from "../types";
 import { getSessionToken } from "./session";
 
@@ -56,4 +57,13 @@ export async function requireRole(dashboardRole: Role): Promise<AuthUser> {
     redirect(roleRedirectPath[user.role]);
   }
   return user;
+}
+
+/** Maps the single `AuthUser` source of truth to the plain display shape `Sidebar` (a domain-agnostic component) expects. */
+export function toSidebarUser(user: AuthUser): SidebarUser {
+  return {
+    name: user.name,
+    email: user.email,
+    roleLabel: roleLabels[user.role],
+  };
 }
