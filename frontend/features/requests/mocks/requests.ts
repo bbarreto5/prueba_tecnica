@@ -168,8 +168,6 @@ export const mockRequests: RequestSummary[] = [
   },
 ];
 
-export const recentRequests = mockRequests.slice(0, 8);
-
 export const openWorkQueueRequests = mockRequests.filter(
   (request) => request.status === "pending" || request.status === "in_progress",
 );

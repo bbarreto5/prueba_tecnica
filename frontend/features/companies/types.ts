@@ -1,11 +1,17 @@
 export type CompanyStatus = "active" | "inactive";
 
-/** Mock-only summary shown on the admin dashboard widget — not the real backend model. */
+/**
+ * Per-company summary row shown on the admin dashboard widget. Not a backend
+ * model — `usersCount`/`openRequestsCount` are derived locally from the real
+ * `/users` and `/requests` lists (see `features/dashboard/lib/metrics.ts`).
+ * `null` means the source list needed to compute it failed to load — never
+ * fabricated as `0`, which would be indistinguishable from a real "none".
+ */
 export interface CompanyOverview {
   id: string;
   name: string;
-  usersCount: number;
-  openRequestsCount: number;
+  usersCount: number | null;
+  openRequestsCount: number | null;
   status: CompanyStatus;
 }
 

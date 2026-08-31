@@ -1,14 +1,5 @@
 import type { DashboardMetric } from "../types";
 
-export const adminMetrics: DashboardMetric[] = [
-  { label: "Empresas", value: 24, hint: "3 nuevas este mes" },
-  { label: "Usuarios registrados", value: 186 },
-  { label: "Solicitudes abiertas", value: 32 },
-  { label: "Solicitudes pendientes", value: 18 },
-  { label: "Solicitudes resueltas", value: 247, hint: "Últimos 30 días" },
-  { label: "Incidencias críticas", value: 5, hint: "Requieren atención inmediata" },
-];
-
 export const supportMetrics: DashboardMetric[] = [
   { label: "Asignadas a mí", value: 4 },
   { label: "Pendientes", value: 6 },
