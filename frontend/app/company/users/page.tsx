@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import type { SidebarNavItem } from "@/components/Sidebar";
+import { companyNavItems } from "@/features/auth/lib/companyNav";
 import { logoutAction } from "@/features/auth/lib/actions";
 import { requireRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { UsersView } from "@/features/users/components/UsersView";
@@ -14,11 +14,7 @@ export const metadata: Metadata = {
   title: "Usuarios",
 };
 
-const navItems: SidebarNavItem[] = [
-  { label: "Dashboard", href: "/company" },
-  { label: "Usuarios", href: "/company/users", current: true },
-  { label: "Mis solicitudes", href: "#" },
-];
+const navItems = companyNavItems("users");
 
 export default async function CompanyUsersPage() {
   const user = await requireRole("company");

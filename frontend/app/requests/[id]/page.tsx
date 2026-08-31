@@ -5,7 +5,8 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardSection } from "@/components/DashboardSection";
 import type { SidebarNavItem } from "@/components/Sidebar";
 import { logoutAction } from "@/features/auth/lib/actions";
-import { requireRole, toSidebarUser } from "@/features/auth/lib/currentUser";
+import { companyNavItems } from "@/features/auth/lib/companyNav";
+import { requireAnyRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { PriorityBadge } from "@/features/requests/components/PriorityBadge";
 import { RequestActions } from "@/features/requests/components/RequestActions";
 import { RequestMessages } from "@/features/requests/components/RequestMessages";
@@ -20,7 +21,7 @@ import { getRequestDetail, getRequestMessages } from "@/features/requests/lib/qu
 import type { Message, RequestDetail } from "@/features/requests/types";
 import { ApiError } from "@/lib/api-client";
 
-const navItems: SidebarNavItem[] = [
+const userNavItems: SidebarNavItem[] = [
   { label: "Solicitudes", href: "/requests", current: true },
 ];
 
@@ -37,7 +38,8 @@ export async function generateMetadata({
 }
 
 export default async function RequestDetailPage({ params }: PageProps<"/requests/[id]">) {
-  const user = await requireRole("user");
+  const user = await requireAnyRole(["company", "user"]);
+  const navItems = user.role === "company" ? companyNavItems("requests") : userNavItems;
   const { id } = await params;
 
   let request: RequestDetail | null;

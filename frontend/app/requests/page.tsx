@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { logoutAction } from "@/features/auth/lib/actions";
-import { requireRole, toSidebarUser } from "@/features/auth/lib/currentUser";
+import { companyNavItems } from "@/features/auth/lib/companyNav";
+import { requireAnyRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import type { SidebarNavItem } from "@/components/Sidebar";
 import { RequestsView } from "@/features/requests/components/RequestsView";
@@ -13,12 +14,13 @@ export const metadata: Metadata = {
   title: "Solicitudes",
 };
 
-const navItems: SidebarNavItem[] = [
+const userNavItems: SidebarNavItem[] = [
   { label: "Solicitudes", href: "/requests", current: true },
 ];
 
 export default async function RequestsPage() {
-  const user = await requireRole("user");
+  const user = await requireAnyRole(["company", "user"]);
+  const navItems = user.role === "company" ? companyNavItems("requests") : userNavItems;
 
   let requests: RequestDetail[] = [];
   let loadError = false;

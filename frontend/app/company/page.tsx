@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardSection } from "@/components/DashboardSection";
 import { MetricCard } from "@/components/MetricCard";
-import type { SidebarNavItem } from "@/components/Sidebar";
+import { companyNavItems } from "@/features/auth/lib/companyNav";
 import { logoutAction } from "@/features/auth/lib/actions";
 import { requireRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { buildCompanyMetrics } from "@/features/dashboard/lib/metrics";
@@ -14,11 +14,7 @@ export const metadata: Metadata = {
   title: "Panel de empresa",
 };
 
-const navItems: SidebarNavItem[] = [
-  { label: "Dashboard", href: "/company", current: true },
-  { label: "Usuarios", href: "/company/users" },
-  { label: "Mis solicitudes", href: "#" },
-];
+const navItems = companyNavItems("dashboard");
 
 const RECENT_REQUESTS_LIMIT = 5;
 
