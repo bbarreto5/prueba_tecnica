@@ -1,14 +1,5 @@
 import type { DashboardMetric } from "../types";
 
-export const supportMetrics: DashboardMetric[] = [
-  { label: "Asignadas a mí", value: 4 },
-  { label: "Pendientes", value: 6 },
-  { label: "En progreso", value: 8 },
-  { label: "Resueltas", value: 52, hint: "Últimos 30 días" },
-  { label: "Prioridad alta", value: 4 },
-  { label: "Tiempo promedio de resolución", value: "5.4h" },
-];
-
 export const companyMetrics: DashboardMetric[] = [
   { label: "Solicitudes abiertas", value: 5 },
   { label: "En progreso", value: 3 },

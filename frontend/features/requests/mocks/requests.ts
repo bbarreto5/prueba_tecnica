@@ -168,14 +168,6 @@ export const mockRequests: RequestSummary[] = [
   },
 ];
 
-export const openWorkQueueRequests = mockRequests.filter(
-  (request) => request.status === "pending" || request.status === "in_progress",
-);
-
-export const priorityQueueRequests = openWorkQueueRequests.filter(
-  (request) => request.priority === "high" || request.priority === "urgent",
-);
-
 export const acmeCorpRequests = mockRequests.filter(
   (request) => request.companyName === "Acme Corp",
 );

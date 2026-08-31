@@ -60,6 +60,50 @@ export function buildAdminMetrics(
 }
 
 /**
+ * Builds the support dashboard's metric cards from the same `/requests`
+ * source ADMIN uses (SUPPORT sees every request — see
+ * `app/application/requests/get_requests.py`) plus the current user's own
+ * id, to split out "my" workload from the global counts.
+ */
+export function buildSupportMetrics(
+  requests: RequestDetail[] | null,
+  currentUserId: string,
+): DashboardMetric[] {
+  const unavailableHint = "No pudimos cargar las solicitudes.";
+
+  if (!requests) {
+    return [
+      { label: "Asignadas a mí", value: UNAVAILABLE, hint: unavailableHint },
+      { label: "Pendientes", value: UNAVAILABLE, hint: unavailableHint },
+      { label: "En progreso", value: UNAVAILABLE, hint: unavailableHint },
+      { label: "Resueltas", value: UNAVAILABLE, hint: unavailableHint },
+      { label: "Prioridad alta", value: UNAVAILABLE, hint: unavailableHint },
+      { label: "Resueltas por mí", value: UNAVAILABLE, hint: unavailableHint },
+    ];
+  }
+
+  const assignedToMe = requests.filter(
+    (request) => request.assignedTo === currentUserId && request.status === "in_progress",
+  ).length;
+  const pending = requests.filter((request) => request.status === "pending").length;
+  const inProgress = requests.filter((request) => request.status === "in_progress").length;
+  const resolved = requests.filter((request) => request.status === "resolved").length;
+  const highPriority = requests.filter((request) => request.priority === "high").length;
+  const resolvedByMe = requests.filter(
+    (request) => request.assignedTo === currentUserId && request.status === "resolved",
+  ).length;
+
+  return [
+    { label: "Asignadas a mí", value: assignedToMe },
+    { label: "Pendientes", value: pending },
+    { label: "En progreso", value: inProgress },
+    { label: "Resueltas", value: resolved },
+    { label: "Prioridad alta", value: highPriority },
+    { label: "Resueltas por mí", value: resolvedByMe },
+  ];
+}
+
+/**
  * Derives the per-company overview row from real data. `Company` has no
  * usersCount/openRequestsCount/status fields of its own — these are computed
  * locally from the users/requests lists already fetched for the metrics

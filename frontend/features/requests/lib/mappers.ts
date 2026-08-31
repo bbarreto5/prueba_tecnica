@@ -16,6 +16,8 @@ import { formatDate, formatDateTime } from "./format";
  * requester/assignee are intentionally NOT resolved to names here; the UI
  * derives "Tú" / "Sin asignar" style labels from these ids at render time
  * instead (see RequestActions/RequestMessages), never inventing a name.
+ * ADMIN/SUPPORT views *do* have access to `GET /companies` and `GET /users`
+ * (see `withResolvedNames` below) and resolve real names best-effort.
  */
 
 const typeToCategory: Record<BackendRequestType, RequestCategory> = {
@@ -83,4 +85,30 @@ export function toMessage(dto: MessageResponseBody): Message {
     content: dto.content,
     createdAt: formatDateTime(dto.created_at),
   };
+}
+
+/**
+ * Fills in `companyName`/`requesterName`/`assigneeName` on ADMIN/SUPPORT
+ * views (the public `/requests` view never calls this — see the note atop
+ * this file). `companyNames`/`userNames` come from the caller's own
+ * `GET /companies`/`GET /users` fetch; a request whose id isn't in the map
+ * (that fetch failed, or the record was deleted) simply renders blank
+ * rather than guessing — never inventing a name.
+ */
+export function withResolvedNames(
+  requests: RequestDetail[],
+  companyNames: Map<string, string>,
+  userNames: Map<string, string>,
+  currentUserId: string,
+): RequestDetail[] {
+  return requests.map((request) => ({
+    ...request,
+    companyName: companyNames.get(request.companyId),
+    requesterName: userNames.get(request.createdBy),
+    assigneeName: request.assignedTo
+      ? request.assignedTo === currentUserId
+        ? "Tú"
+        : userNames.get(request.assignedTo)
+      : null,
+  }));
 }

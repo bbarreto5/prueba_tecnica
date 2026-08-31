@@ -12,6 +12,7 @@ import {
   returnRequestAction,
   takeRequestAction,
 } from "@/features/requests/lib/actions";
+import { withResolvedNames } from "@/features/requests/lib/mappers";
 import { getRequests } from "@/features/requests/lib/queries";
 import type { RequestDetail } from "@/features/requests/types";
 import { getUsers } from "@/features/users/lib/queries";
@@ -58,14 +59,7 @@ export default async function AdminRequestsPage() {
     // Falls back to blank requester/assignee names below.
   }
 
-  const enrichedRequests = requests.map((request) => ({
-    ...request,
-    companyName: companyNames.get(request.companyId),
-    requesterName: userNames.get(request.createdBy),
-    assigneeName: request.assignedTo
-      ? (request.assignedTo === user.id ? "Tú" : userNames.get(request.assignedTo))
-      : null,
-  }));
+  const enrichedRequests = withResolvedNames(requests, companyNames, userNames, user.id);
 
   return (
     <DashboardLayout

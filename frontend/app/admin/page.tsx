@@ -9,8 +9,8 @@ import { CompanyOverviewList } from "@/features/companies/components/CompanyOver
 import { getCompanies } from "@/features/companies/lib/queries";
 import { buildAdminMetrics, buildCompanyOverview } from "@/features/dashboard/lib/metrics";
 import { RequestTable } from "@/features/requests/components/RequestTable";
+import { withResolvedNames } from "@/features/requests/lib/mappers";
 import { getRequests } from "@/features/requests/lib/queries";
-import type { RequestSummary } from "@/features/requests/types";
 import { getUsers } from "@/features/users/lib/queries";
 
 export const metadata: Metadata = {
@@ -46,19 +46,12 @@ export default async function AdminDashboardPage() {
   const userNames = new Map((users ?? []).map((u) => [u.id, u.name]));
 
   // GET /requests returns oldest-first (see backend repository ordering) — the last N are the most recent.
-  const recentRequests: RequestSummary[] = (requests ?? [])
-    .slice(-RECENT_REQUESTS_LIMIT)
-    .reverse()
-    .map((request) => ({
-      ...request,
-      companyName: companyNames.get(request.companyId),
-      requesterName: userNames.get(request.createdBy),
-      assigneeName: request.assignedTo
-        ? request.assignedTo === user.id
-          ? "Tú"
-          : userNames.get(request.assignedTo)
-        : null,
-    }));
+  const recentRequests = withResolvedNames(
+    (requests ?? []).slice(-RECENT_REQUESTS_LIMIT).reverse(),
+    companyNames,
+    userNames,
+    user.id,
+  );
 
   return (
     <DashboardLayout
@@ -89,6 +82,7 @@ export default async function AdminDashboardPage() {
             requests={recentRequests}
             columns={["company", "requester", "assignee"]}
             titleColumnLabel="Título"
+            detailBasePath="/admin/requests"
           />
         )}
       </DashboardSection>

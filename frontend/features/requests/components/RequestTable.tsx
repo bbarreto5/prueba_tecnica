@@ -17,6 +17,13 @@ interface RequestTableProps<T extends RequestSummary> {
   renderActions?: (request: T) => React.ReactNode;
   /** Base path for the row's detail link — defaults to the public `/requests/[id]` route. */
   detailHref?: (request: T) => string;
+  /**
+   * Simpler alternative to `detailHref` for Server Component callers: a
+   * function prop can't cross the server/client boundary directly (this is
+   * a Client Component), but a plain string can. Ignored if `detailHref` is
+   * also provided.
+   */
+  detailBasePath?: string;
 }
 
 export function RequestTable<T extends RequestSummary>({
@@ -25,6 +32,7 @@ export function RequestTable<T extends RequestSummary>({
   titleColumnLabel = "Asunto",
   renderActions,
   detailHref,
+  detailBasePath = "/requests",
 }: RequestTableProps<T>) {
   const showCompany = columns.includes("company");
   const showRequester = columns.includes("requester");
@@ -70,7 +78,7 @@ export function RequestTable<T extends RequestSummary>({
                 <tr key={request.id} className="border-b border-[#f3f4f6] last:border-0">
                   <td className="py-3 pr-4 font-medium text-[#101828]">
                     <Link
-                      href={detailHref ? detailHref(request) : `/requests/${request.id}`}
+                      href={detailHref ? detailHref(request) : `${detailBasePath}/${request.id}`}
                       className="rounded-sm text-[#101828] underline decoration-transparent underline-offset-2 transition-colors hover:decoration-current focus-visible:decoration-current focus-visible:outline-none"
                     >
                       {request.id}
