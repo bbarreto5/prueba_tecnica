@@ -6,14 +6,12 @@ import type { SidebarNavItem } from "@/components/Sidebar";
 import { logoutAction } from "@/features/auth/lib/actions";
 import { requireAnyRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { getCompanies } from "@/features/companies/lib/queries";
-import { RequestActions } from "@/features/requests/components/RequestActions";
-import { RequestTable } from "@/features/requests/components/RequestTable";
+import { AdminRequestsTable } from "@/features/requests/components/AdminRequestsTable";
 import {
   resolveRequestAction,
   returnRequestAction,
   takeRequestAction,
 } from "@/features/requests/lib/actions";
-import { getRequestCapabilities } from "@/features/requests/lib/permissions";
 import { getRequests } from "@/features/requests/lib/queries";
 import type { RequestDetail } from "@/features/requests/types";
 import { getUsers } from "@/features/users/lib/queries";
@@ -102,24 +100,12 @@ export default async function AdminRequestsPage() {
           title="Todas las solicitudes"
           description="Solicitudes e incidencias de todas las empresas."
         >
-          <RequestTable
+          <AdminRequestsTable
             requests={enrichedRequests}
-            columns={["company", "requester", "assignee", "updatedAt"]}
-            detailHref={(request) => `/admin/requests/${request.id}`}
-            renderActions={(request) => {
-              const { canTake, canReturn, canResolve } = getRequestCapabilities(request, user);
-              return (
-                <RequestActions
-                  requestId={request.id}
-                  canTake={canTake}
-                  canReturn={canReturn}
-                  canResolve={canResolve}
-                  takeAction={takeRequestAction}
-                  returnAction={returnRequestAction}
-                  resolveAction={resolveRequestAction}
-                />
-              );
-            }}
+            currentUser={user}
+            takeAction={takeRequestAction}
+            returnAction={returnRequestAction}
+            resolveAction={resolveRequestAction}
           />
         </DashboardSection>
       )}
