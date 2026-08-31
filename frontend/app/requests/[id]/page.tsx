@@ -1,60 +1,109 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/Button";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardSection } from "@/components/DashboardSection";
 import type { SidebarNavItem } from "@/components/Sidebar";
+import { logoutAction } from "@/features/auth/lib/actions";
+import { requireRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { PriorityBadge } from "@/features/requests/components/PriorityBadge";
+import { RequestActions } from "@/features/requests/components/RequestActions";
 import { RequestMessages } from "@/features/requests/components/RequestMessages";
-import { RequestTimeline } from "@/features/requests/components/RequestTimeline";
 import { StatusBadge } from "@/features/requests/components/StatusBadge";
+import {
+  cancelRequestAction,
+  resolveRequestAction,
+  sendMessageAction,
+} from "@/features/requests/lib/actions";
 import { requestCategoryLabels } from "@/features/requests/lib/labels";
-import { getRequestMessages } from "@/features/requests/mocks/messages";
-import { requestDetails, getRequestDetail } from "@/features/requests/mocks/requestDetails";
-import { getRequestTimeline } from "@/features/requests/mocks/timeline";
+import { getRequestDetail, getRequestMessages } from "@/features/requests/lib/queries";
+import type { Message, RequestDetail } from "@/features/requests/types";
+import { ApiError } from "@/lib/api-client";
 
 const navItems: SidebarNavItem[] = [
   { label: "Solicitudes", href: "/requests", current: true },
 ];
 
-export function generateStaticParams() {
-  return requestDetails.map((request) => ({ id: request.id }));
-}
-
 export async function generateMetadata({
   params,
 }: PageProps<"/requests/[id]">): Promise<Metadata> {
   const { id } = await params;
-  const request = getRequestDetail(id);
-  return {
-    title: request ? `${request.id} · ${request.title}` : "Solicitud no encontrada",
-  };
+  try {
+    const request = await getRequestDetail(id);
+    return { title: request ? `${request.id} · ${request.title}` : "Solicitud" };
+  } catch {
+    return { title: "Solicitud" };
+  }
 }
 
 export default async function RequestDetailPage({ params }: PageProps<"/requests/[id]">) {
+  const user = await requireRole("user");
   const { id } = await params;
-  const request = getRequestDetail(id);
+
+  let request: RequestDetail | null;
+  try {
+    request = await getRequestDetail(id);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      notFound();
+    }
+    return (
+      <DashboardLayout
+        navItems={navItems}
+        user={toSidebarUser(user)}
+        logoutAction={logoutAction}
+        title="Solicitudes"
+      >
+        <div className="flex flex-col items-center gap-3 rounded-[2rem] border border-[#e5e5e5] bg-white px-6 py-16 text-center">
+          <p className="text-base font-bold text-[#101828]">No pudimos cargar la solicitud</p>
+          <p className="max-w-sm text-sm text-[#6a7282]">
+            Ocurrió un problema al conectar con el servidor. Intenta nuevamente.
+          </p>
+          <Link
+            href={`/requests/${id}`}
+            className="mt-2 rounded-[2rem] bg-[#ff8b1a] px-5 py-2.5 text-sm font-semibold text-[#101828] transition-opacity hover:opacity-90"
+          >
+            Reintentar
+          </Link>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!request) {
     notFound();
   }
 
-  const messages = getRequestMessages(request.id);
-  const timeline = getRequestTimeline(request.id);
+  let messages: Message[] = [];
+  let messagesLoadError = false;
+  try {
+    messages = await getRequestMessages(id);
+  } catch {
+    messagesLoadError = true;
+  }
+
+  const canCancel = request.status === "pending" || request.status === "in_progress";
+  const canResolve =
+    (user.role === "admin" || user.role === "support") && request.status === "in_progress";
+  const canSendMessage = request.status !== "resolved" && request.status !== "cancelled";
 
   const infoRows = [
-    { label: "Empresa", value: request.companyName },
-    { label: "Solicitante", value: request.requesterName },
-    { label: "Responsable", value: request.assigneeName ?? "Sin asignar" },
     { label: "Categoría", value: requestCategoryLabels[request.category] },
+    {
+      label: "Solicitante",
+      value: request.createdBy === user.id ? "Tú" : "Otro miembro de tu compañía",
+    },
+    { label: "Responsable", value: request.assignedTo ? "Asignada a soporte" : "Sin asignar" },
     { label: "Fecha de creación", value: request.createdAt },
     { label: "Última actualización", value: request.updatedAt },
+    ...(request.resolvedAt ? [{ label: "Fecha de resolución", value: request.resolvedAt }] : []),
   ];
 
   return (
     <DashboardLayout
       navItems={navItems}
+      user={toSidebarUser(user)}
+      logoutAction={logoutAction}
       title={request.title}
       description={`${request.id} · Creada el ${request.createdAt}`}
       headerActions={
@@ -81,7 +130,16 @@ export default async function RequestDetailPage({ params }: PageProps<"/requests
             title="Conversación"
             description="Mensajes entre el solicitante y soporte."
           >
-            <RequestMessages messages={messages} />
+            <RequestMessages
+              requestId={request.id}
+              initialMessages={messages}
+              loadError={messagesLoadError}
+              canSend={canSendMessage}
+              currentUserId={user.id}
+              requesterId={request.createdBy}
+              assigneeId={request.assignedTo}
+              sendAction={sendMessageAction}
+            />
           </DashboardSection>
         </div>
 
@@ -101,16 +159,13 @@ export default async function RequestDetailPage({ params }: PageProps<"/requests
           </DashboardSection>
 
           <DashboardSection title="Acciones" description="Disponibles según tu rol.">
-            <div className="flex flex-wrap gap-3">
-              <Button variant="ghost">Asignar</Button>
-              <Button variant="ghost">Cambiar estado</Button>
-              <Button variant="ghost">Cambiar prioridad</Button>
-              <Button variant="ghost">Cerrar solicitud</Button>
-            </div>
-          </DashboardSection>
-
-          <DashboardSection title="Actividad">
-            <RequestTimeline events={timeline} />
+            <RequestActions
+              requestId={request.id}
+              canCancel={canCancel}
+              canResolve={canResolve}
+              cancelAction={cancelRequestAction}
+              resolveAction={resolveRequestAction}
+            />
           </DashboardSection>
         </div>
       </div>

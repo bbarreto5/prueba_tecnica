@@ -30,7 +30,6 @@ export default function RequestDetailLoading() {
             <div className="flex flex-col gap-8">
               <SkeletonBlock className="h-48" />
               <SkeletonBlock className="h-24" />
-              <SkeletonBlock className="h-40" />
             </div>
           </div>
         </div>

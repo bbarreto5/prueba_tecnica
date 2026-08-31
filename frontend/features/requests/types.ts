@@ -7,9 +7,10 @@ export type RequestCategory = "incident" | "question" | "request";
 export interface RequestSummary {
   id: string;
   title: string;
-  companyName: string;
-  requesterName: string;
-  assigneeName: string | null;
+  /** Only known when resolved from mock/dashboard data — the real detail/list flow doesn't resolve company/requester/assignee names (see AGENTS notes in mappers.ts). */
+  companyName?: string;
+  requesterName?: string;
+  assigneeName?: string | null;
   priority: RequestPriority;
   status: RequestStatus;
   createdAt: string;
@@ -19,6 +20,11 @@ export interface RequestSummary {
 export interface RequestDetail extends RequestSummary {
   description: string;
   category: RequestCategory;
+  /** Real backend-only fields, needed to derive "is this mine" / "who's it assigned to" without inventing names. */
+  companyId: string;
+  createdBy: string;
+  assignedTo: string | null;
+  resolvedAt: string | null;
 }
 
 export interface ActivityEvent {
@@ -27,18 +33,9 @@ export interface ActivityEvent {
   timestamp: string;
 }
 
-export interface TimelineEvent {
+export interface Message {
   id: string;
-  type: string;
-  actor: string;
-  description: string;
-  timestamp: string;
-}
-
-export interface RequestMessage {
-  id: string;
-  author: string;
-  role: "requester" | "support";
+  authorId: string;
   content: string;
-  timestamp: string;
+  createdAt: string;
 }
