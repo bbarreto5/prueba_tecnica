@@ -3,7 +3,13 @@
 import { redirect } from "next/navigation";
 import { getSessionToken } from "@/features/auth/lib/session";
 import { ApiError } from "@/lib/api-client";
-import { cancelRequest, createRequest, resolveRequest } from "@/services/requests";
+import {
+  cancelRequest,
+  createRequest,
+  resolveRequest,
+  returnRequest,
+  takeRequest,
+} from "@/services/requests";
 import { createRequestMessage } from "@/services/messages";
 import { mapCategoryToBackend, mapPriorityToBackend, toMessage, toRequestDetail } from "./mappers";
 import type { Message, RequestCategory, RequestDetail, RequestPriority } from "../types";
@@ -85,6 +91,43 @@ export async function resolveRequestAction(id: string): Promise<RequestActionRes
 
   try {
     const updated = await resolveRequest(token, id);
+    return { ok: true, request: toRequestDetail(updated) };
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      redirect("/api/auth/session-expired");
+    }
+    return { ok: false, error: describeRequestError(error) };
+  }
+}
+
+export async function takeRequestAction(id: string): Promise<RequestActionResult> {
+  const token = await getSessionToken();
+  if (!token) {
+    return { ok: false, error: "Tu sesión no es válida. Vuelve a iniciar sesión." };
+  }
+
+  try {
+    const updated = await takeRequest(token, id);
+    return { ok: true, request: toRequestDetail(updated) };
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      redirect("/api/auth/session-expired");
+    }
+    if (error instanceof ApiError && error.status === 409) {
+      return { ok: false, error: "La solicitud ya no está disponible para ser tomada." };
+    }
+    return { ok: false, error: describeRequestError(error) };
+  }
+}
+
+export async function returnRequestAction(id: string): Promise<RequestActionResult> {
+  const token = await getSessionToken();
+  if (!token) {
+    return { ok: false, error: "Tu sesión no es válida. Vuelve a iniciar sesión." };
+  }
+
+  try {
+    const updated = await returnRequest(token, id);
     return { ok: true, request: toRequestDetail(updated) };
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {

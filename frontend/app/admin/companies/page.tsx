@@ -21,7 +21,7 @@ export default async function AdminCompaniesPage() {
     { label: "Dashboard", href: roleRedirectPath[user.role] },
     { label: "Empresas", href: "/admin/companies", current: true },
     { label: "Usuarios", href: "/admin/users" },
-    { label: "Solicitudes", href: "#" },
+    { label: "Solicitudes", href: "/admin/requests" },
   ];
 
   let companies: Company[] = [];

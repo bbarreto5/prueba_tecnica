@@ -5,23 +5,31 @@ import { StatusBadge } from "./StatusBadge";
 
 export type RequestTableColumn = "company" | "requester" | "assignee" | "updatedAt";
 
-interface RequestTableProps {
-  requests: RequestSummary[];
+interface RequestTableProps<T extends RequestSummary> {
+  requests: T[];
   columns?: RequestTableColumn[];
   titleColumnLabel?: string;
+  /** Renders an extra "Acciones" column for each row when provided (e.g. Tomar/Devolver/Resolver). */
+  renderActions?: (request: T) => React.ReactNode;
+  /** Base path for the row's detail link — defaults to the public `/requests/[id]` route. */
+  detailHref?: (request: T) => string;
 }
 
-export function RequestTable({
+export function RequestTable<T extends RequestSummary>({
   requests,
   columns = [],
   titleColumnLabel = "Asunto",
-}: RequestTableProps) {
+  renderActions,
+  detailHref,
+}: RequestTableProps<T>) {
   const showCompany = columns.includes("company");
   const showRequester = columns.includes("requester");
   const showAssignee = columns.includes("assignee");
   const showUpdatedAt = columns.includes("updatedAt");
+  const showActions = Boolean(renderActions);
   const columnCount =
-    5 + [showCompany, showRequester, showUpdatedAt, showAssignee].filter(Boolean).length;
+    5 +
+    [showCompany, showRequester, showUpdatedAt, showAssignee, showActions].filter(Boolean).length;
 
   return (
     <div className="-mx-6 overflow-x-auto px-6 sm:-mx-8 sm:px-8">
@@ -41,8 +49,9 @@ export function RequestTable({
               <th className="py-3 pr-4 font-medium">Última actualización</th>
             ) : null}
             {showAssignee ? (
-              <th className="py-3 pr-0 font-medium">Responsable</th>
+              <th className="py-3 pr-4 font-medium">Responsable</th>
             ) : null}
+            {showActions ? <th className="py-3 pr-0 font-medium">Acciones</th> : null}
           </tr>
         </thead>
         <tbody>
@@ -60,7 +69,7 @@ export function RequestTable({
               <tr key={request.id} className="border-b border-[#f3f4f6] last:border-0">
                 <td className="py-3 pr-4 font-medium text-[#101828]">
                   <Link
-                    href={`/requests/${request.id}`}
+                    href={detailHref ? detailHref(request) : `/requests/${request.id}`}
                     className="rounded-sm text-[#101828] underline decoration-transparent underline-offset-2 transition-colors hover:decoration-current focus-visible:decoration-current focus-visible:outline-none"
                   >
                     {request.id}
@@ -84,9 +93,12 @@ export function RequestTable({
                   <td className="py-3 pr-4 text-[#6a7282]">{request.updatedAt}</td>
                 ) : null}
                 {showAssignee ? (
-                  <td className="py-3 pr-0 text-[#6a7282]">
+                  <td className="py-3 pr-4 text-[#6a7282]">
                     {request.assigneeName ?? "Sin asignar"}
                   </td>
+                ) : null}
+                {showActions ? (
+                  <td className="py-3 pr-0">{renderActions?.(request)}</td>
                 ) : null}
               </tr>
             ))

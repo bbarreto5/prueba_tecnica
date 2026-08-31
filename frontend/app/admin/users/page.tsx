@@ -24,7 +24,7 @@ export default async function AdminUsersPage() {
     { label: "Dashboard", href: roleRedirectPath[user.role] },
     { label: "Empresas", href: "/admin/companies" },
     { label: "Usuarios", href: "/admin/users", current: true },
-    { label: "Solicitudes", href: "#" },
+    { label: "Solicitudes", href: "/admin/requests" },
   ];
 
   let users: User[] = [];

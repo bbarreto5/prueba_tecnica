@@ -14,6 +14,8 @@ interface RequestMessagesProps {
   requesterId: string;
   assigneeId: string | null;
   sendAction: (requestId: string, formData: FormData) => Promise<MessageActionResult>;
+  /** Shown instead of the composer when `canSend` is false. Defaults to the "closed request" copy used by the public /requests view. */
+  disabledMessage?: string;
 }
 
 export function RequestMessages({
@@ -25,6 +27,7 @@ export function RequestMessages({
   requesterId,
   assigneeId,
   sendAction,
+  disabledMessage = "Esta solicitud está cerrada y ya no admite nuevos mensajes.",
 }: RequestMessagesProps) {
   const [messages, setMessages] = useState(initialMessages);
   const [content, setContent] = useState("");
@@ -136,7 +139,7 @@ export function RequestMessages({
         </form>
       ) : (
         <p className="border-t border-[#e5e5e5] pt-6 text-sm text-[#6a7282]">
-          Esta solicitud está cerrada y ya no admite nuevos mensajes.
+          {disabledMessage}
         </p>
       )}
     </div>

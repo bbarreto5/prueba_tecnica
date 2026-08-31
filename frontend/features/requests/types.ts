@@ -7,7 +7,12 @@ export type RequestCategory = "incident" | "question" | "request";
 export interface RequestSummary {
   id: string;
   title: string;
-  /** Only known when resolved from mock/dashboard data — the real detail/list flow doesn't resolve company/requester/assignee names (see AGENTS notes in mappers.ts). */
+  /**
+   * Not part of the wire DTO (see AGENTS notes in mappers.ts) — only ever
+   * populated when a caller resolves it separately, e.g. mock/dashboard data,
+   * or the admin requests views resolving it via the existing companies/users
+   * services (ADMIN/SUPPORT-only, since /requests itself never exposes names).
+   */
   companyName?: string;
   requesterName?: string;
   assigneeName?: string | null;

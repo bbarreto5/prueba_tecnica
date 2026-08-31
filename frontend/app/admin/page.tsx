@@ -19,7 +19,7 @@ const navItems: SidebarNavItem[] = [
   { label: "Dashboard", href: "/admin", current: true },
   { label: "Empresas", href: "/admin/companies" },
   { label: "Usuarios", href: "/admin/users" },
-  { label: "Solicitudes", href: "#" },
+  { label: "Solicitudes", href: "/admin/requests" },
 ];
 
 export default async function AdminDashboardPage() {

@@ -51,3 +51,13 @@ export function cancelRequest(token: string, id: string): Promise<RequestRespons
 export function resolveRequest(token: string, id: string): Promise<RequestResponseBody> {
   return apiFetch<RequestResponseBody>(`/requests/${id}/resolve`, { method: "POST", token });
 }
+
+/** ADMIN/SUPPORT only (enforced by the backend) — claims a PENDING request. */
+export function takeRequest(token: string, id: string): Promise<RequestResponseBody> {
+  return apiFetch<RequestResponseBody>(`/requests/${id}/take`, { method: "POST", token });
+}
+
+/** ADMIN/SUPPORT only (enforced by the backend) — releases a held IN_PROGRESS request back to PENDING. */
+export function returnRequest(token: string, id: string): Promise<RequestResponseBody> {
+  return apiFetch<RequestResponseBody>(`/requests/${id}/return`, { method: "POST", token });
+}
