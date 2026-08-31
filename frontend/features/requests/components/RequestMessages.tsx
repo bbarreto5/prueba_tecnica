@@ -34,6 +34,19 @@ export function RequestMessages({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
+  // `initialMessages` is a fresh array on every server re-render (e.g. after
+  // `router.refresh()` from a sibling action like take/return/resolve, or a
+  // message created outside this composer — see `ReturnToQueueAction`).
+  // `useState`'s initializer only runs once, so without this the local list
+  // would go stale after those refreshes even though the server data changed.
+  // Adjusted during render (React's documented pattern for this), not in an
+  // effect, to avoid an extra render pass.
+  const [prevInitialMessages, setPrevInitialMessages] = useState(initialMessages);
+  if (initialMessages !== prevInitialMessages) {
+    setPrevInitialMessages(initialMessages);
+    setMessages(initialMessages);
+  }
+
   function authorLabel(authorId: string): string {
     if (authorId === currentUserId) return "Tú";
     if (authorId === assigneeId) return "Soporte";
