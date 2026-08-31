@@ -25,6 +25,18 @@ export function mapBackendRole(role: BackendRole): Role {
   return backendRoleMap[role];
 }
 
+const roleToBackendMap: Record<Role, BackendRole> = {
+  admin: "ADMIN",
+  support: "SUPPORT",
+  company: "COMPANY",
+  user: "USER",
+};
+
+/** Inverse of `mapBackendRole` — used when sending a role value to the backend (e.g. creating/updating a user). */
+export function mapRoleToBackend(role: Role): BackendRole {
+  return roleToBackendMap[role];
+}
+
 /** Where to send a user immediately after login, based on their role. */
 export const roleRedirectPath: Record<Role, string> = {
   admin: "/admin",
