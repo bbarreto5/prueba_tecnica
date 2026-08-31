@@ -7,11 +7,6 @@ import { logoutAction } from "@/features/auth/lib/actions";
 import { requireAnyRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { getCompanies } from "@/features/companies/lib/queries";
 import { AdminRequestsTable } from "@/features/requests/components/AdminRequestsTable";
-import {
-  resolveRequestAction,
-  returnRequestAction,
-  takeRequestAction,
-} from "@/features/requests/lib/actions";
 import { withResolvedNames } from "@/features/requests/lib/mappers";
 import { getRequests } from "@/features/requests/lib/queries";
 import type { RequestDetail } from "@/features/requests/types";
@@ -94,13 +89,7 @@ export default async function AdminRequestsPage() {
           title="Todas las solicitudes"
           description="Solicitudes e incidencias de todas las empresas."
         >
-          <AdminRequestsTable
-            requests={enrichedRequests}
-            currentUser={user}
-            takeAction={takeRequestAction}
-            returnAction={returnRequestAction}
-            resolveAction={resolveRequestAction}
-          />
+          <AdminRequestsTable requests={enrichedRequests} />
         </DashboardSection>
       )}
     </DashboardLayout>

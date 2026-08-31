@@ -6,18 +6,16 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import type { RequestActionResult } from "../lib/actions";
 
-type ActionKind = "take" | "return" | "cancel" | "resolve";
+type ActionKind = "take" | "cancel" | "resolve";
 
 interface RequestActionsProps {
   requestId: string;
   canCancel?: boolean;
   canResolve?: boolean;
   canTake?: boolean;
-  canReturn?: boolean;
   cancelAction?: (id: string) => Promise<RequestActionResult>;
   resolveAction?: (id: string) => Promise<RequestActionResult>;
   takeAction?: (id: string) => Promise<RequestActionResult>;
-  returnAction?: (id: string) => Promise<RequestActionResult>;
 }
 
 const ACTION_COPY: Record<
@@ -29,12 +27,6 @@ const ACTION_COPY: Record<
     description: "La solicitud será asignada a ti.",
     confirmLabel: "Tomar solicitud",
     loadingLabel: "Tomando...",
-  },
-  return: {
-    title: "¿Devolver solicitud?",
-    description: "La solicitud dejará de estar asignada a ti.",
-    confirmLabel: "Devolver solicitud",
-    loadingLabel: "Devolviendo...",
   },
   cancel: {
     title: "¿Cancelar solicitud?",
@@ -55,24 +47,21 @@ export function RequestActions({
   canCancel = false,
   canResolve = false,
   canTake = false,
-  canReturn = false,
   cancelAction,
   resolveAction,
   takeAction,
-  returnAction,
 }: RequestActionsProps) {
   const router = useRouter();
   const [confirming, setConfirming] = useState<ActionKind | null>(null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  if (!canCancel && !canResolve && !canTake && !canReturn) {
+  if (!canCancel && !canResolve && !canTake) {
     return <p className="text-sm text-[#6a7282]">No hay acciones disponibles para esta solicitud.</p>;
   }
 
   const actionsByKind: Partial<Record<ActionKind, (id: string) => Promise<RequestActionResult>>> = {
     take: takeAction,
-    return: returnAction,
     cancel: cancelAction,
     resolve: resolveAction,
   };
@@ -107,11 +96,6 @@ export function RequestActions({
         {canTake ? (
           <Button variant="primary" onClick={() => setConfirming("take")}>
             Tomar solicitud
-          </Button>
-        ) : null}
-        {canReturn ? (
-          <Button variant="ghost" onClick={() => setConfirming("return")}>
-            Devolver
           </Button>
         ) : null}
         {canCancel ? (

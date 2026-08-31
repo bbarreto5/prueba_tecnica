@@ -10,6 +10,7 @@ import { getCompanies } from "@/features/companies/lib/queries";
 import { PriorityBadge } from "@/features/requests/components/PriorityBadge";
 import { RequestActions } from "@/features/requests/components/RequestActions";
 import { RequestMessages } from "@/features/requests/components/RequestMessages";
+import { ReturnToQueueAction } from "@/features/requests/components/ReturnToQueueAction";
 import { StatusBadge } from "@/features/requests/components/StatusBadge";
 import {
   resolveRequestAction,
@@ -108,17 +109,17 @@ export default async function AdminRequestDetailPage({
     // Falls back to the raw id below.
   }
 
-  const { canTake, canReturn, canResolve } = getRequestCapabilities(request, user);
+  const { canTake, canReturn, canResolve, canReply } = getRequestCapabilities(request, user);
   const isClosed = request.status === "resolved" || request.status === "cancelled";
-  const isAssignedToMe = request.assignedTo === user.id;
-  // Admin/support-only UX rule (no backend equivalent — the API allows any
-  // ADMIN/SUPPORT to message any request they can access): only the agent
-  // currently holding the request may reply, to keep the conversation owned
-  // by whoever is actually working it.
-  const canSendMessage = !isClosed && isAssignedToMe;
+  // See getRequestCapabilities: for SUPPORT, canReply requires being the
+  // current assignee (a UX rule, not a backend one); ADMIN keeps the
+  // backend's real, unrestricted permission to message any accessible
+  // request. This message only ever shows for the SUPPORT-restricted case.
   const messagesDisabledMessage = isClosed
     ? "Esta solicitud está cerrada y ya no admite nuevos mensajes."
-    : "Solo el agente asignado puede enviar mensajes en esta solicitud.";
+    : request.assignedTo === null
+      ? "Esta solicitud no está asignada a ti. Tómala para poder responder."
+      : "Esta solicitud está asignada a otro agente. Solo el agente asignado puede responder.";
 
   const infoRows = [
     { label: "Categoría", value: requestCategoryLabels[request.category] },
@@ -176,7 +177,7 @@ export default async function AdminRequestDetailPage({
               requestId={request.id}
               initialMessages={messages}
               loadError={messagesLoadError}
-              canSend={canSendMessage}
+              canSend={canReply}
               currentUserId={user.id}
               requesterId={request.createdBy}
               assigneeId={request.assignedTo}
@@ -202,15 +203,30 @@ export default async function AdminRequestDetailPage({
           </DashboardSection>
 
           <DashboardSection title="Acciones" description="Disponibles según tu rol.">
-            <RequestActions
-              requestId={request.id}
-              canTake={canTake}
-              canReturn={canReturn}
-              canResolve={canResolve}
-              takeAction={takeRequestAction}
-              returnAction={returnRequestAction}
-              resolveAction={resolveRequestAction}
-            />
+            {!canTake && !canReturn && !canResolve ? (
+              <p className="text-sm text-[#6a7282]">
+                No hay acciones disponibles para esta solicitud.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-3">
+                {canTake || canResolve ? (
+                  <RequestActions
+                    requestId={request.id}
+                    canTake={canTake}
+                    canResolve={canResolve}
+                    takeAction={takeRequestAction}
+                    resolveAction={resolveRequestAction}
+                  />
+                ) : null}
+                {canReturn ? (
+                  <ReturnToQueueAction
+                    requestId={request.id}
+                    sendMessageAction={sendMessageAction}
+                    returnAction={returnRequestAction}
+                  />
+                ) : null}
+              </div>
+            )}
           </DashboardSection>
         </div>
       </div>
