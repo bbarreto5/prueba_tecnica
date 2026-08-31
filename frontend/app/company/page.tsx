@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import { logoutAction } from "@/features/auth/lib/actions";
-import { requireRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardSection } from "@/components/DashboardSection";
 import { MetricCard } from "@/components/MetricCard";
-import { companyMetrics } from "@/features/dashboard/mocks/metrics";
-import { RecentActivityFeed } from "@/features/requests/components/RecentActivityFeed";
-import { RequestTable } from "@/features/requests/components/RequestTable";
-import { acmeCorpActivity } from "@/features/requests/mocks/activity";
-import { acmeCorpRequests } from "@/features/requests/mocks/requests";
 import type { SidebarNavItem } from "@/components/Sidebar";
+import { logoutAction } from "@/features/auth/lib/actions";
+import { requireRole, toSidebarUser } from "@/features/auth/lib/currentUser";
+import { buildCompanyMetrics } from "@/features/dashboard/lib/metrics";
+import { RequestTable } from "@/features/requests/components/RequestTable";
+import { getRequests } from "@/features/requests/lib/queries";
+import type { RequestDetail } from "@/features/requests/types";
 
 export const metadata: Metadata = {
   title: "Panel de empresa",
@@ -21,39 +20,54 @@ const navItems: SidebarNavItem[] = [
   { label: "Mis solicitudes", href: "#" },
 ];
 
+const RECENT_REQUESTS_LIMIT = 5;
+
 export default async function CompanyDashboardPage() {
   const user = await requireRole("company");
+
+  let requests: RequestDetail[] | null = null;
+  let loadError = false;
+  try {
+    requests = await getRequests();
+  } catch {
+    loadError = true;
+  }
+
+  const metrics = buildCompanyMetrics(requests);
+  // GET /requests returns oldest-first (see backend repository ordering) — the last N are the most recent.
+  const recentRequests = (requests ?? []).slice(-RECENT_REQUESTS_LIMIT).reverse();
 
   return (
     <DashboardLayout
       navItems={navItems}
       user={toSidebarUser(user)}
       logoutAction={logoutAction}
-      title="Panel de Acme Corp"
+      title="Panel de empresa"
       description="Qué está pasando con tus solicitudes."
       ctaLabel="Crear solicitud"
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {companyMetrics.map((metric) => (
+        {metrics.map((metric) => (
           <MetricCard key={metric.label} {...metric} />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
-        <div className="xl:col-span-2">
-          <DashboardSection title="Solicitudes recientes">
-            <RequestTable
-              requests={acmeCorpRequests}
-              columns={["updatedAt"]}
-              titleColumnLabel="Título"
-            />
-          </DashboardSection>
-        </div>
-
-        <DashboardSection title="Actividad reciente">
-          <RecentActivityFeed events={acmeCorpActivity} />
-        </DashboardSection>
-      </div>
+      <DashboardSection title="Solicitudes recientes">
+        {loadError ? (
+          <p className="text-sm text-[#6a7282]">
+            No pudimos cargar las solicitudes. Intenta recargar la página.
+          </p>
+        ) : recentRequests.length === 0 ? (
+          <p className="text-sm text-[#6a7282]">No hay solicitudes registradas todavía.</p>
+        ) : (
+          <RequestTable
+            requests={recentRequests}
+            columns={["updatedAt"]}
+            titleColumnLabel="Título"
+            linkToDetail={false}
+          />
+        )}
+      </DashboardSection>
     </DashboardLayout>
   );
 }

@@ -32,12 +32,6 @@ export interface RequestDetail extends RequestSummary {
   resolvedAt: string | null;
 }
 
-export interface ActivityEvent {
-  id: string;
-  description: string;
-  timestamp: string;
-}
-
 export interface Message {
   id: string;
   authorId: string;

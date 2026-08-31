@@ -24,6 +24,8 @@ interface RequestTableProps<T extends RequestSummary> {
    * also provided.
    */
   detailBasePath?: string;
+  /** Set to `false` when this role has no accessible detail route for these rows — renders the id as plain text instead of a broken link. */
+  linkToDetail?: boolean;
 }
 
 export function RequestTable<T extends RequestSummary>({
@@ -33,6 +35,7 @@ export function RequestTable<T extends RequestSummary>({
   renderActions,
   detailHref,
   detailBasePath = "/requests",
+  linkToDetail = true,
 }: RequestTableProps<T>) {
   const showCompany = columns.includes("company");
   const showRequester = columns.includes("requester");
@@ -77,12 +80,16 @@ export function RequestTable<T extends RequestSummary>({
               pageItems.map((request) => (
                 <tr key={request.id} className="border-b border-[#f3f4f6] last:border-0">
                   <td className="py-3 pr-4 font-medium text-[#101828]">
-                    <Link
-                      href={detailHref ? detailHref(request) : `${detailBasePath}/${request.id}`}
-                      className="rounded-sm text-[#101828] underline decoration-transparent underline-offset-2 transition-colors hover:decoration-current focus-visible:decoration-current focus-visible:outline-none"
-                    >
-                      {request.id}
-                    </Link>
+                    {linkToDetail ? (
+                      <Link
+                        href={detailHref ? detailHref(request) : `${detailBasePath}/${request.id}`}
+                        className="rounded-sm text-[#101828] underline decoration-transparent underline-offset-2 transition-colors hover:decoration-current focus-visible:decoration-current focus-visible:outline-none"
+                      >
+                        {request.id}
+                      </Link>
+                    ) : (
+                      request.id
+                    )}
                   </td>
                   <td className="py-3 pr-4 text-[#101828]">{request.title}</td>
                   {showCompany ? (

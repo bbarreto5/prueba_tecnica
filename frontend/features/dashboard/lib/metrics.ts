@@ -104,6 +104,39 @@ export function buildSupportMetrics(
 }
 
 /**
+ * Builds the company dashboard's metric cards from `/requests` — already
+ * scoped server-side to the caller's own company for a COMPANY-role user
+ * (see `app/application/requests/get_requests.py`), so no company id or
+ * extra filtering is needed here.
+ */
+export function buildCompanyMetrics(requests: RequestDetail[] | null): DashboardMetric[] {
+  const unavailableHint = "No pudimos cargar las solicitudes.";
+
+  if (!requests) {
+    return [
+      { label: "Solicitudes abiertas", value: UNAVAILABLE, hint: unavailableHint },
+      { label: "En progreso", value: UNAVAILABLE, hint: unavailableHint },
+      { label: "Resueltas", value: UNAVAILABLE, hint: unavailableHint },
+      { label: "Incidencias pendientes", value: UNAVAILABLE, hint: unavailableHint },
+    ];
+  }
+
+  const open = requests.filter((request) => request.status === "pending").length;
+  const inProgress = requests.filter((request) => request.status === "in_progress").length;
+  const resolved = requests.filter((request) => request.status === "resolved").length;
+  const pendingIncidents = requests.filter(
+    (request) => request.status === "pending" && request.category === "incident",
+  ).length;
+
+  return [
+    { label: "Solicitudes abiertas", value: open },
+    { label: "En progreso", value: inProgress },
+    { label: "Resueltas", value: resolved },
+    { label: "Incidencias pendientes", value: pendingIncidents },
+  ];
+}
+
+/**
  * Derives the per-company overview row from real data. `Company` has no
  * usersCount/openRequestsCount/status fields of its own — these are computed
  * locally from the users/requests lists already fetched for the metrics
