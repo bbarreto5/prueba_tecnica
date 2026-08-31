@@ -22,6 +22,7 @@ from tests.infrastructure.database.conftest import (
     run_async,
     session_factory_for_tests,
 )
+from tests.support import email_service as _email_service
 
 ADMIN_EMAIL = "requests-admin@example.com"
 ADMIN_PASSWORD = "Admin123!"
@@ -597,3 +598,99 @@ def test_full_lifecycle_create_take_return_take_again() -> None:
     retaken = client.post(f"/api/v1/requests/{request['id']}/take", headers=_auth(_tokens["support2"])).json()
     assert retaken["status"] == "IN_PROGRESS"
     assert retaken["assigned_to"] == _ids["support2"]
+
+
+# --- Email notifications --------------------------------------------------
+
+
+def test_create_request_by_user_notifies_user_and_company() -> None:
+    _email_service.sent.clear()
+    request = _create_request(_tokens["user_a1"], title="Notif: user creates").json()
+
+    subject = f"Nueva solicitud #{request['id']}"
+    assert set(_email_service.sent) == {(USER_A1_EMAIL, subject), (COMPANY_A_OWNER_EMAIL, subject)}
+
+
+def test_create_request_by_company_notifies_once_deduplicated() -> None:
+    _email_service.sent.clear()
+    request = _create_request(_tokens["company_a_owner"], title="Notif: company creates").json()
+
+    subject = f"Nueva solicitud #{request['id']}"
+    # The creator IS the company's only COMPANY-role user here, so a single
+    # email is expected, not two identical ones.
+    assert _email_service.sent == [(COMPANY_A_OWNER_EMAIL, subject)]
+
+
+def test_create_request_without_company_recipients_notifies_only_creator() -> None:
+    _email_service.sent.clear()
+    request = _create_request(_tokens["admin"], company_id=_ids["company_a"], title="Notif: admin creates").json()
+
+    subject = f"Nueva solicitud #{request['id']}"
+    assert set(_email_service.sent) == {(ADMIN_EMAIL, subject), (COMPANY_A_OWNER_EMAIL, subject)}
+
+
+def test_take_request_notifies_creator() -> None:
+    request = _create_request(_tokens["user_a1"], title="Notif: take").json()
+    _email_service.sent.clear()
+
+    client.post(f"/api/v1/requests/{request['id']}/take", headers=_auth(_tokens["support1"]))
+
+    assert _email_service.sent == [(USER_A1_EMAIL, f"Solicitud #{request['id']} asignada a soporte")]
+
+
+def test_take_request_by_creator_notifies_no_one() -> None:
+    request = _create_request(_tokens["admin"], company_id=_ids["company_a"], title="Notif: admin self-take").json()
+    _email_service.sent.clear()
+
+    client.post(f"/api/v1/requests/{request['id']}/take", headers=_auth(_tokens["admin"]))
+
+    assert _email_service.sent == []
+
+
+def test_return_request_notifies_creator() -> None:
+    request = _create_request(_tokens["user_a1"], title="Notif: return").json()
+    client.post(f"/api/v1/requests/{request['id']}/take", headers=_auth(_tokens["support1"]))
+    _email_service.sent.clear()
+
+    client.post(f"/api/v1/requests/{request['id']}/return", headers=_auth(_tokens["support1"]))
+
+    assert _email_service.sent == [(USER_A1_EMAIL, f"Solicitud #{request['id']} devuelta a la cola")]
+
+
+def test_resolve_request_notifies_creator() -> None:
+    request = _create_request(_tokens["user_a1"], title="Notif: resolve").json()
+    client.post(f"/api/v1/requests/{request['id']}/take", headers=_auth(_tokens["support1"]))
+    _email_service.sent.clear()
+
+    client.post(f"/api/v1/requests/{request['id']}/resolve", headers=_auth(_tokens["support1"]))
+
+    assert _email_service.sent == [(USER_A1_EMAIL, f"Solicitud #{request['id']} resuelta")]
+
+
+def test_cancel_request_by_user_notifies_assigned_support() -> None:
+    request = _create_request(_tokens["user_a1"], title="Notif: cancel with support").json()
+    client.post(f"/api/v1/requests/{request['id']}/take", headers=_auth(_tokens["support1"]))
+    _email_service.sent.clear()
+
+    client.patch(f"/api/v1/requests/{request['id']}/cancel", headers=_auth(_tokens["user_a1"]))
+
+    assert _email_service.sent == [(SUPPORT1_EMAIL, f"Solicitud #{request['id']} cancelada")]
+
+
+def test_cancel_request_without_assigned_support_sends_no_email() -> None:
+    request = _create_request(_tokens["user_a1"], title="Notif: cancel pending").json()
+    _email_service.sent.clear()
+
+    client.patch(f"/api/v1/requests/{request['id']}/cancel", headers=_auth(_tokens["user_a1"]))
+
+    assert _email_service.sent == []
+
+
+def test_cancel_request_by_support_sends_no_email() -> None:
+    request = _create_request(_tokens["user_a1"], title="Notif: support cancels own").json()
+    client.post(f"/api/v1/requests/{request['id']}/take", headers=_auth(_tokens["support1"]))
+    _email_service.sent.clear()
+
+    client.patch(f"/api/v1/requests/{request['id']}/cancel", headers=_auth(_tokens["support1"]))
+
+    assert _email_service.sent == []

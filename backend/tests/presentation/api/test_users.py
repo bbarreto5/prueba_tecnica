@@ -19,6 +19,7 @@ from tests.infrastructure.database.conftest import (
     run_async,
     session_factory_for_tests,
 )
+from tests.support import email_service as _email_service
 
 ADMIN_EMAIL = "users-admin@example.com"
 ADMIN_PASSWORD = "Admin123!"
@@ -476,6 +477,30 @@ def test_patch_user_password_is_hashed_and_never_returned() -> None:
         assert verify_password("NewSecret123!", user.password_hash)
 
     run_async(_check())
+
+
+def test_patch_user_password_change_notifies_target_user() -> None:
+    target = _make_target("patch-target-8@example.com", "USER", _ids["company_a"])
+    _email_service.sent.clear()
+
+    response = client.patch(
+        f"/api/v1/users/{target['id']}", json={"password": "AnotherSecret123!"}, headers=_auth(_tokens["admin"])
+    )
+
+    assert response.status_code == 200
+    assert _email_service.sent == [(target["email"], "Contraseña actualizada")]
+
+
+def test_patch_user_without_password_sends_no_email() -> None:
+    target = _make_target("patch-target-9@example.com", "USER", _ids["company_a"])
+    _email_service.sent.clear()
+
+    response = client.patch(
+        f"/api/v1/users/{target['id']}", json={"name": "Only Name"}, headers=_auth(_tokens["admin"])
+    )
+
+    assert response.status_code == 200
+    assert _email_service.sent == []
 
 
 # --- Security -----------------------------------------------------------------

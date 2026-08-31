@@ -27,7 +27,7 @@ SEED_USERS = [
         "name": "System Administrator",
         "role": UserRole.ADMIN,
         "password_env": "SEED_ADMIN_PASSWORD",
-        "password_default": "Admin123!",
+        "password_default": " ",
     },
     {
         "email": "support1@example.com",

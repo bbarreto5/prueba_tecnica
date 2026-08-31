@@ -4,7 +4,36 @@ Guía de arquitectura para trabajar en este repositorio. Léela antes de tocar c
 
 ## Contexto
 
-Monorepo (`backend/` + `frontend/`; `frontend/` está vacío todavía, no implementado). Este documento cubre `backend/`: una API de gestión de incidencias/solicitudes (Requests) construida con FastAPI + PostgreSQL + SQLAlchemy 2.x (async) + Alembic, siguiendo Clean Architecture.
+Monorepo (`backend/` + `frontend/`, un app Next.js independiente con su propio CLAUDE.md). Este documento cubre `backend/`: una API de gestión de incidencias/solicitudes (Requests) construida con FastAPI + PostgreSQL + SQLAlchemy 2.x (async) + Alembic, siguiendo Clean Architecture.
+
+## Comandos
+
+Todos se ejecutan desde `backend/` con el virtualenv activado (`.venv`).
+
+```bash
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Levantar la API en local (recarga en caliente)
+uvicorn app.main:app --reload
+# → http://localhost:8000/docs
+
+# Migraciones (Alembic; config en alembic.ini, scripts en app/infrastructure/database/migrations/)
+alembic upgrade head                       # aplicar migraciones pendientes
+alembic revision --autogenerate -m "..."   # generar una nueva a partir de cambios en los modelos
+alembic downgrade -1                       # revertir la última
+
+# Seed de datos de desarrollo (idempotente; credenciales vía SEED_*_PASSWORD en .env)
+python -m app.infrastructure.database.seed
+
+# Tests (contra una base PostgreSQL de test real, no mocks/SQLite)
+# requiere TEST_DATABASE_URL (default: postgresql+psycopg://localhost:5432/incidents_test)
+pytest                                      # toda la suite
+pytest tests/presentation/api/test_requests.py            # un archivo
+pytest tests/presentation/api/test_requests.py::test_create_request_by_user_is_scoped_to_own_company  # un test
+```
+
+No hay linter/formatter configurado en el repo (sin `ruff`/`flake8`/`black` en `requirements.txt` ni config asociada) — no asumas que existe un comando de lint.
 
 ## Estructura real
 
@@ -23,7 +52,8 @@ backend/app/
 │   ├── users/
 │   ├── companies/
 │   ├── requests/
-│   └── messages/
+│   ├── messages/
+│   └── notifications/            # notify_*.py: un caso de uso por evento (mismo patrón que requests/)
 ├── infrastructure/
 │   ├── database/
 │   │   ├── models/              # SQLAlchemy ORM
@@ -31,7 +61,8 @@ backend/app/
 │   │   ├── mappers.py           # domain entity ↔ ORM model
 │   │   ├── migrations/          # Alembic
 │   │   └── seed.py              # seed idempotente de datos de desarrollo
-│   └── security/                # vacío actualmente — no mover aquí el código de core/security.py
+│   ├── security/                # vacío actualmente — no mover aquí el código de core/security.py
+│   └── email/                    # EmailService + templates + config SMTP (ver sección Notificaciones)
 └── presentation/api/
     ├── dependencies.py          # get_current_user, require_roles()
     └── auth.py, users.py, companies.py, requests.py, messages.py
@@ -84,6 +115,20 @@ Message pertenece a un Request; su autorización se deriva siempre de la del Req
 ```text
 sin acceso al Request → sin acceso a sus Messages
 ```
+
+## Notificaciones por email
+
+`EmailService` (`app/infrastructure/email/service.py`) centraliza el envío de emails. Se activa **únicamente** si `SMTP_HOST/PORT/USER/PASSWORD/FROM` están todos presentes en `.env` (`EmailService.is_enabled`); si falta alguno, `send()` no hace nada — sin lanzar excepción ni bloquear el arranque. Un fallo SMTP se captura y se registra con `logging`, nunca se propaga.
+
+Las plantillas (`app/infrastructure/email/templates.py`) son funciones puras que devuelven `EmailContent(subject, text, html)` — sin lógica de destinatarios ni de transporte.
+
+La selección de destinatarios (quién recibe cada notificación) es una decisión de negocio y vive en `app/application/notifications/` — un `notify_*.py` por evento, mismo patrón que `app/application/requests/`. Cada función:
+- recibe las entidades de dominio + los repositories necesarios para resolver destinatarios + un `EmailService`;
+- nunca lanza excepciones (decorador `notification_task` en `_shared.py`), para que una notificación fallida nunca rompa la operación de negocio que ya se ejecutó y persistió.
+
+Los routers (`requests.py`, `messages.py`, `users.py`) inyectan `EmailService` vía `Depends(get_email_service)` y llaman al `notify_*` correspondiente **después** de `await session.commit()` — nunca antes, y nunca dentro de un bloque que haga rollback.
+
+Antes de añadir una notificación nueva, revisa si ya existe un `notify_*` para ese evento o uno muy similar — no dupliques la resolución de destinatarios ni la lógica SMTP.
 
 ## Base de datos
 
@@ -140,5 +185,7 @@ No copies aquí los endpoints ni sus schemas — la fuente de verdad es `app/pre
 - Base de datos (engine/sesión) → `app/core/database.py`
 - Dependencias de auth (`Depends`) → `app/presentation/api/dependencies.py`
 - Rutas de la API → `app/presentation/api/`
+- Servicio de email (SMTP, templates, config) → `app/infrastructure/email/`
+- Casos de uso de notificación (destinatarios por evento) → `app/application/notifications/`
 - Tests → `tests/`
 - Documentación de la API → OpenAPI de FastAPI (`/docs`)

@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.application.notifications.notify_password_changed import notify_password_changed
 from app.application.users.create_user import create_user as create_user_use_case
 from app.application.users.exceptions import (
     CompanyAssignmentError,
@@ -22,6 +23,7 @@ from app.domain.entities.user import User
 from app.domain.enums.user import UserRole
 from app.infrastructure.database.repositories.company_repository import CompanyRepository
 from app.infrastructure.database.repositories.user_repository import UserRepository
+from app.infrastructure.email.service import EmailService, get_email_service
 from app.presentation.api.dependencies import require_roles
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -107,6 +109,7 @@ async def update_user(
     data: UserUpdate,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Depends(_require_staff_or_company)],
+    email_service: Annotated[EmailService, Depends(get_email_service)],
 ) -> UserResponse:
     try:
         user = await update_user_use_case(
@@ -131,4 +134,6 @@ async def update_user(
     except Exception:
         await session.rollback()
         raise
+    if data.password is not None:
+        await notify_password_changed(user, email_service)
     return UserResponse.model_validate(user)

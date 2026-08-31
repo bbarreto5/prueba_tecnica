@@ -4,6 +4,13 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.application.notifications.notify_request_cancelled import (
+    notify_request_cancelled,
+)
+from app.application.notifications.notify_request_created import notify_request_created
+from app.application.notifications.notify_request_resolved import notify_request_resolved
+from app.application.notifications.notify_request_returned import notify_request_returned
+from app.application.notifications.notify_request_taken import notify_request_taken
 from app.application.requests.cancel_request import cancel_request as cancel_request_use_case
 from app.application.requests.create_request import create_request as create_request_use_case
 from app.application.requests.exceptions import (
@@ -24,6 +31,8 @@ from app.domain.entities.user import User
 from app.domain.enums.user import UserRole
 from app.infrastructure.database.repositories.company_repository import CompanyRepository
 from app.infrastructure.database.repositories.request_repository import RequestRepository
+from app.infrastructure.database.repositories.user_repository import UserRepository
+from app.infrastructure.email.service import EmailService, get_email_service
 from app.presentation.api.dependencies import get_current_user, require_roles
 
 router = APIRouter(prefix="/requests", tags=["requests"])
@@ -68,6 +77,7 @@ async def create_request(
     data: RequestCreate,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Depends(get_current_user)],
+    email_service: Annotated[EmailService, Depends(get_email_service)],
 ) -> RequestResponse:
     try:
         request = await create_request_use_case(
@@ -83,6 +93,7 @@ async def create_request(
     except Exception:
         await session.rollback()
         raise
+    await notify_request_created(request, current_user, UserRepository(session), email_service)
     return RequestResponse.model_validate(request)
 
 
@@ -133,6 +144,7 @@ async def cancel_request(
     request_id: UUID,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Depends(get_current_user)],
+    email_service: Annotated[EmailService, Depends(get_email_service)],
 ) -> RequestResponse:
     try:
         request = await cancel_request_use_case(request_id, current_user, RequestRepository(session))
@@ -149,6 +161,7 @@ async def cancel_request(
     except Exception:
         await session.rollback()
         raise
+    await notify_request_cancelled(request, current_user, UserRepository(session), email_service)
     return RequestResponse.model_validate(request)
 
 
@@ -165,6 +178,7 @@ async def take_request(
     request_id: UUID,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Depends(_require_support_staff)],
+    email_service: Annotated[EmailService, Depends(get_email_service)],
 ) -> RequestResponse:
     try:
         request = await take_request_use_case(request_id, current_user, RequestRepository(session))
@@ -178,6 +192,9 @@ async def take_request(
     except Exception:
         await session.rollback()
         raise
+    await notify_request_taken(
+        request, current_user, UserRepository(session), CompanyRepository(session), email_service
+    )
     return RequestResponse.model_validate(request)
 
 
@@ -195,6 +212,7 @@ async def return_request(
     request_id: UUID,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Depends(_require_support_staff)],
+    email_service: Annotated[EmailService, Depends(get_email_service)],
 ) -> RequestResponse:
     try:
         request = await return_request_use_case(request_id, current_user, RequestRepository(session))
@@ -211,6 +229,7 @@ async def return_request(
     except Exception:
         await session.rollback()
         raise
+    await notify_request_returned(request, current_user, UserRepository(session), email_service)
     return RequestResponse.model_validate(request)
 
 
@@ -228,6 +247,7 @@ async def resolve_request(
     request_id: UUID,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Depends(_require_support_staff)],
+    email_service: Annotated[EmailService, Depends(get_email_service)],
 ) -> RequestResponse:
     try:
         request = await resolve_request_use_case(request_id, current_user, RequestRepository(session))
@@ -244,4 +264,5 @@ async def resolve_request(
     except Exception:
         await session.rollback()
         raise
+    await notify_request_resolved(request, current_user, UserRepository(session), email_service)
     return RequestResponse.model_validate(request)

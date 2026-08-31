@@ -10,11 +10,14 @@ from app.application.messages.get_request_messages import (
     get_request_messages as get_request_messages_use_case,
 )
 from app.application.messages.schemas import MessageCreate, MessageResponse
+from app.application.notifications.notify_request_message import notify_request_message
 from app.application.requests.exceptions import RequestAccessDeniedError, RequestNotFoundError
 from app.core.database import get_session
 from app.domain.entities.user import User
 from app.infrastructure.database.repositories.message_repository import MessageRepository
 from app.infrastructure.database.repositories.request_repository import RequestRepository
+from app.infrastructure.database.repositories.user_repository import UserRepository
+from app.infrastructure.email.service import EmailService, get_email_service
 from app.presentation.api.dependencies import get_current_user
 
 router = APIRouter(prefix="/requests/{request_id}/messages", tags=["messages"])
@@ -77,10 +80,12 @@ async def create_request_message(
     data: MessageCreate,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Depends(get_current_user)],
+    email_service: Annotated[EmailService, Depends(get_email_service)],
 ) -> MessageResponse:
+    request_repository = RequestRepository(session)
     try:
         message = await create_message_use_case(
-            request_id, data, current_user, RequestRepository(session), MessageRepository(session)
+            request_id, data, current_user, request_repository, MessageRepository(session)
         )
         await session.commit()
     except RequestNotFoundError as exc:
@@ -95,4 +100,8 @@ async def create_request_message(
     except Exception:
         await session.rollback()
         raise
+
+    request = await request_repository.get_by_id(request_id)
+    if request is not None:
+        await notify_request_message(request, message, current_user, UserRepository(session), email_service)
     return MessageResponse.model_validate(message)

@@ -20,6 +20,7 @@ from tests.infrastructure.database.conftest import (
     run_async,
     session_factory_for_tests,
 )
+from tests.support import email_service as _email_service
 
 ADMIN_EMAIL = "messages-admin@example.com"
 ADMIN_PASSWORD = "Admin123!"
@@ -386,3 +387,54 @@ def test_company_isolation_between_two_companies() -> None:
 
     other_post = _post_message(_tokens["company_a_owner"], request_b["id"])
     assert other_post.status_code == 403
+
+
+# --- Email notifications ---------------------------------------------------
+
+
+def test_message_from_user_notifies_assigned_support() -> None:
+    request = _new_request(_tokens["user_a1"], "Notif: user to support")
+    client.post(f"/api/v1/requests/{request['id']}/take", headers=_auth(_tokens["support1"]))
+    _email_service.sent.clear()
+
+    response = _post_message(_tokens["user_a1"], request["id"], "Need an update")
+    assert response.status_code == 201
+    assert _email_service.sent == [(SUPPORT1_EMAIL, f"Nuevo mensaje en solicitud #{request['id']}")]
+
+
+def test_message_from_company_notifies_assigned_support() -> None:
+    request = _new_request(_tokens["company_a_owner"], "Notif: company to support")
+    client.post(f"/api/v1/requests/{request['id']}/take", headers=_auth(_tokens["support1"]))
+    _email_service.sent.clear()
+
+    response = _post_message(_tokens["company_a_owner"], request["id"], "Any update?")
+    assert response.status_code == 201
+    assert _email_service.sent == [(SUPPORT1_EMAIL, f"Nuevo mensaje en solicitud #{request['id']}")]
+
+
+def test_message_without_assigned_support_sends_no_email() -> None:
+    _email_service.sent.clear()
+
+    response = _post_message(_tokens["user_a1"], _ids["request_a"], "Nobody has taken this yet")
+    assert response.status_code == 201
+    assert _email_service.sent == []
+
+
+def test_message_from_support_notifies_creator() -> None:
+    request = _new_request(_tokens["user_a1"], "Notif: support to user")
+    client.post(f"/api/v1/requests/{request['id']}/take", headers=_auth(_tokens["support1"]))
+    _email_service.sent.clear()
+
+    response = _post_message(_tokens["support1"], request["id"], "We're on it")
+    assert response.status_code == 201
+    assert _email_service.sent == [(USER_A1_EMAIL, f"Nuevo mensaje en solicitud #{request['id']}")]
+
+
+def test_message_from_admin_sends_no_email() -> None:
+    request = _new_request(_tokens["user_a1"], "Notif: admin posts")
+    client.post(f"/api/v1/requests/{request['id']}/take", headers=_auth(_tokens["support1"]))
+    _email_service.sent.clear()
+
+    response = _post_message(_tokens["admin"], request["id"], "Admin note")
+    assert response.status_code == 201
+    assert _email_service.sent == []
