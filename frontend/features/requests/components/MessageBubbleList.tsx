@@ -7,6 +7,24 @@ interface MessageBubbleListProps {
   assigneeId: string | null;
 }
 
+const AVATAR_TONE: Record<string, string> = {
+  Tú: "bg-[#ff8b1a] text-[#101828]",
+  Soporte: "bg-[#09c6b8]/20 text-[#09c6b8]",
+  Solicitante: "bg-[#9ca3af]/25 text-[#6a7282]",
+  Equipo: "bg-[#9ca3af]/25 text-[#6a7282]",
+};
+
+function Avatar({ label }: { label: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${AVATAR_TONE[label] ?? AVATAR_TONE.Equipo}`}
+    >
+      {label.charAt(0)}
+    </span>
+  );
+}
+
 /**
  * Read-only rendering of a conversation — shared by the live composer
  * (`RequestMessages`) and the client-history modal (`ClientRequestDetailModal`),
@@ -33,8 +51,13 @@ export function MessageBubbleList({
     <ol className="flex flex-col gap-4">
       {messages.map((message) => {
         const isOwn = message.authorId === currentUserId;
+        const label = authorLabel(message.authorId);
         return (
-          <li key={message.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+          <li
+            key={message.id}
+            className={`flex items-end gap-2 ${isOwn ? "justify-end" : "justify-start"}`}
+          >
+            {!isOwn ? <Avatar label={label} /> : null}
             <div
               className={`max-w-[85%] rounded-[1.25rem] border px-4 py-3 sm:max-w-[70%] ${
                 isOwn
@@ -43,13 +66,14 @@ export function MessageBubbleList({
               }`}
             >
               <p className={`text-xs font-semibold ${isOwn ? "text-[#9cb5c4]" : "text-[#6a7282]"}`}>
-                {authorLabel(message.authorId)}
+                {label}
               </p>
               <p className="mt-1 text-sm leading-relaxed">{message.content}</p>
               <p className={`mt-1.5 text-xs ${isOwn ? "text-[#6a7282]" : "text-[#9ca3af]"}`}>
                 {message.createdAt}
               </p>
             </div>
+            {isOwn ? <Avatar label={label} /> : null}
           </li>
         );
       })}

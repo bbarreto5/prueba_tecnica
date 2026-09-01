@@ -110,8 +110,8 @@ export default async function RequestDetailPage({ params }: PageProps<"/requests
       description={`${request.id} · Creada el ${request.createdAt}`}
       headerActions={
         <div className="flex flex-wrap items-center gap-2">
-          <PriorityBadge priority={request.priority} />
-          <StatusBadge status={request.status} />
+          <PriorityBadge priority={request.priority} size="md" />
+          <StatusBadge status={request.status} size="md" />
         </div>
       }
     >
