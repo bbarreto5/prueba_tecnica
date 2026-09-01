@@ -52,6 +52,25 @@ export function RequestFormModal({
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Nueva solicitud">
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#ff8b1a]/15 text-[#ff8b1a]"
+          >
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5.5 3.5h9a1 1 0 0 1 1 1V16l-2.5-1.5-2.5 1.5-2.5-1.5-2.5 1.5V4.5a1 1 0 0 1 1-1Z"
+              />
+              <path strokeLinecap="round" d="M7.5 7h5M7.5 9.5h5" />
+            </svg>
+          </span>
+          <p className="text-sm text-[#9cb5c4]">
+            Cuéntanos qué necesitas y te ayudaremos a resolverlo lo antes posible.
+          </p>
+        </div>
+
         {error ? (
           <div
             role="alert"

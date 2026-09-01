@@ -85,15 +85,28 @@ export function RequestFilters({
           <label htmlFor="search" className="text-xs font-medium text-[#6a7282]">
             Buscar
           </label>
-          <input
-            id="search"
-            name="search"
-            type="search"
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Título o ID..."
-            className={inputClassName}
-          />
+          <div className="relative">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-[#9ca3af]"
+            >
+              <circle cx="8.5" cy="8.5" r="5.5" />
+              <path strokeLinecap="round" d="M16 16l-3.5-3.5" />
+            </svg>
+            <input
+              id="search"
+              name="search"
+              type="search"
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Título o ID..."
+              className={`${inputClassName} pl-10`}
+            />
+          </div>
         </div>
 
         <FilterField label="Estado" htmlFor="status">

@@ -90,14 +90,27 @@ export function UsersView({
           <label htmlFor="user-search" className="sr-only">
             Buscar usuarios
           </label>
-          <input
-            id="user-search"
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por nombre o correo..."
-            className="w-full rounded-[2rem] border border-[#cccccc] bg-white px-4 py-2.5 text-sm text-[#101828] placeholder:text-[#9ca3af] outline-none transition-colors focus:border-[#ff8b1a] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40"
-          />
+          <div className="relative">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-[#9ca3af]"
+            >
+              <circle cx="8.5" cy="8.5" r="5.5" />
+              <path strokeLinecap="round" d="M16 16l-3.5-3.5" />
+            </svg>
+            <input
+              id="user-search"
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar por nombre o correo..."
+              className="w-full rounded-[2rem] border border-[#cccccc] bg-white py-2.5 pr-4 pl-10 text-sm text-[#101828] placeholder:text-[#9ca3af] outline-none transition-colors focus:border-[#ff8b1a] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40"
+            />
+          </div>
         </div>
         <Button variant="primary" onClick={openCreateModal} className="shrink-0">
           + Nuevo usuario
