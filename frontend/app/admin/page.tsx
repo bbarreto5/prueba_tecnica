@@ -45,9 +45,9 @@ export default async function AdminDashboardPage() {
   const companyNames = new Map((companies ?? []).map((company) => [company.id, company.name]));
   const userNames = new Map((users ?? []).map((u) => [u.id, u.name]));
 
-  // GET /requests returns oldest-first (see backend repository ordering) — the last N are the most recent.
+  // getRequests() already sorts newest-created-first — the first N are the most recent.
   const recentRequests = withResolvedNames(
-    (requests ?? []).slice(-RECENT_REQUESTS_LIMIT).reverse(),
+    (requests ?? []).slice(0, RECENT_REQUESTS_LIMIT),
     companyNames,
     userNames,
     user.id,

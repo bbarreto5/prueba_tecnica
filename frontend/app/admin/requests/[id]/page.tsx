@@ -121,15 +121,15 @@ export default async function AdminRequestDetailPage({
   // this reuses the same "fetch all, filter client-side" the rest of
   // /admin/requests already does — no new endpoint, no N+1 (a single fetch
   // serves the whole history list; opening "Ver detalle" reuses the object
-  // already in hand, no per-row request).
+  // already in hand, no per-row request). getRequests() already sorts
+  // newest-first, so filtering alone preserves that order.
   let clientHistory: RequestDetail[] = [];
   let historyLoadError = false;
   try {
     const allRequests = await getRequests();
-    clientHistory = allRequests
-      .filter((r) => r.companyId === request.companyId && r.id !== request.id)
-      .slice()
-      .reverse();
+    clientHistory = allRequests.filter(
+      (r) => r.companyId === request.companyId && r.id !== request.id,
+    );
   } catch {
     historyLoadError = true;
   }

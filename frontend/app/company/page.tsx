@@ -30,8 +30,8 @@ export default async function CompanyDashboardPage() {
   }
 
   const metrics = buildCompanyMetrics(requests);
-  // GET /requests returns oldest-first (see backend repository ordering) — the last N are the most recent.
-  const recentRequests = (requests ?? []).slice(-RECENT_REQUESTS_LIMIT).reverse();
+  // getRequests() already sorts newest-created-first — the first N are the most recent.
+  const recentRequests = (requests ?? []).slice(0, RECENT_REQUESTS_LIMIT);
 
   return (
     <DashboardLayout

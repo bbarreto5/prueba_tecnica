@@ -5,13 +5,22 @@ import { listRequestMessages } from "@/services/messages";
 import { toMessage, toRequestDetail } from "./mappers";
 import type { Message, RequestDetail } from "../types";
 
-/** Fetches the requests visible to the current session (backend already scopes them by role/company). Throws on failure — callers render the error state. */
+/**
+ * Fetches the requests visible to the current session (backend already
+ * scopes them by role/company). Throws on failure — callers render the
+ * error state. Sorted newest-created-first — the single point all request
+ * tables/lists in the app pull from, so none of them need to re-sort or
+ * assume anything about the backend's own ordering.
+ */
 export async function getRequests(): Promise<RequestDetail[]> {
   const token = await getSessionToken();
   if (!token) return [];
 
   const requests = await listRequests(token);
-  return requests.map(toRequestDetail);
+  return requests
+    .slice()
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .map(toRequestDetail);
 }
 
 /**
