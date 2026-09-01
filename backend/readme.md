@@ -46,6 +46,8 @@ python -m app.infrastructure.database.seed
 
 Las contraseñas de los usuarios sembrados se toman de `SEED_ADMIN_PASSWORD`, `SEED_SUPPORT_PASSWORD` y `SEED_COMPANY_USER_PASSWORD` (definidas en `.env`), con valores por defecto si no se configuran.
 
+Los valores por defecto se encuentran definidos en app.infrastructure.database.seed.
+
 ## 5. Levantar el servidor
 
 ```bash
