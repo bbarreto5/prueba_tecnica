@@ -76,12 +76,14 @@ export function RequestMessages({
 
   return (
     <div className="flex flex-col gap-6">
-      <MessageBubbleList
-        messages={messages}
-        currentUserId={currentUserId}
-        requesterId={requesterId}
-        assigneeId={assigneeId}
-      />
+      <div className="max-h-[480px] overflow-y-auto pr-1">
+        <MessageBubbleList
+          messages={messages}
+          currentUserId={currentUserId}
+          requesterId={requesterId}
+          assigneeId={assigneeId}
+        />
+      </div>
 
       {canSend ? (
         <form

@@ -7,7 +7,7 @@ import type { SidebarNavItem } from "@/components/Sidebar";
 import { logoutAction } from "@/features/auth/lib/actions";
 import { requireAnyRole, toSidebarUser } from "@/features/auth/lib/currentUser";
 import { getCompanies } from "@/features/companies/lib/queries";
-import { ClientHistorySection } from "@/features/requests/components/ClientHistorySection";
+import { ClientHistoryModal } from "@/features/requests/components/ClientHistoryModal";
 import { PriorityBadge } from "@/features/requests/components/PriorityBadge";
 import { RequestActions } from "@/features/requests/components/RequestActions";
 import { RequestMessages } from "@/features/requests/components/RequestMessages";
@@ -235,25 +235,15 @@ export default async function AdminRequestDetailPage({
               </div>
             )}
           </DashboardSection>
-        </div>
-      </div>
 
-      <DashboardSection
-        title="Historial del cliente"
-        description="Otras solicitudes registradas por esta empresa."
-      >
-        {historyLoadError ? (
-          <p className="text-sm text-[#6a7282]">
-            No pudimos cargar el historial del cliente. Intenta recargar la página.
-          </p>
-        ) : (
-          <ClientHistorySection
+          <ClientHistoryModal
             history={enrichedHistory}
+            historyLoadError={historyLoadError}
             currentUserId={user.id}
             getMessagesAction={getRequestMessagesAction}
           />
-        )}
-      </DashboardSection>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
