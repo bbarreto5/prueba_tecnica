@@ -53,3 +53,25 @@ uvicorn app.main:app --reload
 ```
 
 La API queda disponible en [http://localhost:8000](http://localhost:8000), con documentación interactiva (Swagger) en [http://localhost:8000/docs](http://localhost:8000/docs).
+
+## Solución de problemas
+
+Si aparece:
+
+zsh: command not found: alembic
+
+verificar que el entorno virtual esté activo:
+
+source .venv/bin/activate
+
+y comprobar que Alembic esté instalado:
+
+alembic --version
+
+Si python no es reconocido o apunta a una versión incorrecta, se recomienda recrear el entorno virtual utilizando Python 3.12:
+
+deactivate
+rm -rf .venv
+/opt/homebrew/bin/python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
