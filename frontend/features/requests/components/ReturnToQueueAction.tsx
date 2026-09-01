@@ -81,6 +81,21 @@ export function ReturnToQueueAction({
 
       <Modal isOpen={isOpen} onClose={close} title="Devolver solicitud">
         <div className="flex flex-col gap-5">
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#3080ff]/15 text-[#3080ff]"
+            >
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 6H8a3.5 3.5 0 0 0 0 7h5" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 3.5 13 6l-2.5 2.5" />
+              </svg>
+            </span>
+            <p className="text-sm text-[#9cb5c4]">
+              La solicitud volverá a la cola general para que otro agente pueda tomarla.
+            </p>
+          </div>
+
           <div className="flex flex-col gap-2">
             <label htmlFor="return-reason" className="text-sm text-[#9cb5c4]">
               ¿Por qué deseas devolver esta solicitud a la cola?

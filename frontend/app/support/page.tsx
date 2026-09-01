@@ -74,6 +74,7 @@ export default async function SupportDashboardPage() {
       <DashboardSection
         title="Solicitudes prioritarias"
         description="Prioridad alta y crítica que requieren atención inmediata."
+        tone="warning"
       >
         {requestsResult.status === "rejected" ? (
           <p className="text-sm text-[#6a7282]">

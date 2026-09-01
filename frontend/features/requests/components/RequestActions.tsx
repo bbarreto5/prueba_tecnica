@@ -53,6 +53,36 @@ const ACTION_COPY: Record<
   },
 };
 
+const ACTION_ICON_TONE: Record<ActionKind, string> = {
+  take: "bg-[#09c6b8]/15 text-[#09c6b8]",
+  resolve: "bg-[#09c6b8]/15 text-[#09c6b8]",
+  cancel: "bg-[#fb2c36]/15 text-[#ff6568]",
+};
+
+function ActionIcon({ kind }: { kind: ActionKind }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${ACTION_ICON_TONE[kind]}`}
+    >
+      {kind === "cancel" ? (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
+          <path strokeLinecap="round" d="M6 6l8 8M14 6l-8 8" />
+        </svg>
+      ) : kind === "resolve" ? (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 10.5l4 4 8-9" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10 3.5v10M5.5 9l4.5 4.5L14.5 9" />
+          <path strokeLinecap="round" d="M4 16.5h12" />
+        </svg>
+      )}
+    </span>
+  );
+}
+
 export function RequestActions({
   requestId,
   canCancel = false,
@@ -126,7 +156,10 @@ export function RequestActions({
 
       <Modal isOpen={confirming !== null} onClose={closeDialog} title={copy?.title ?? ""}>
         <div className="flex flex-col gap-5">
-          <p className="text-sm text-[#9cb5c4]">{copy?.description}</p>
+          <div className="flex items-center gap-3">
+            {confirming ? <ActionIcon kind={confirming} /> : null}
+            <p className="text-sm text-[#9cb5c4]">{copy?.description}</p>
+          </div>
 
           {error ? (
             <div
