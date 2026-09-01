@@ -23,7 +23,10 @@ export function CompanyOverviewList({ companies }: { companies: CompanyOverview[
           </thead>
           <tbody>
             {pageItems.map((company) => (
-              <tr key={company.id} className="border-b border-[#f3f4f6] last:border-0">
+              <tr
+                key={company.id}
+                className="border-b border-[#f3f4f6] transition-colors last:border-0 hover:bg-[#f9fafb]"
+              >
                 <td className="py-3 pr-4 font-medium text-[#101828]">{company.name}</td>
                 <td className="py-3 pr-4 text-[#6a7282]">{company.usersCount ?? "—"}</td>
                 <td className="py-3 pr-4 text-[#6a7282]">{company.openRequestsCount ?? "—"}</td>

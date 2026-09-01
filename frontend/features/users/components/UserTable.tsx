@@ -44,7 +44,10 @@ export function UserTable({
               </tr>
             ) : (
               pageItems.map((user) => (
-                <tr key={user.id} className="border-b border-[#f3f4f6] last:border-0">
+                <tr
+                  key={user.id}
+                  className="border-b border-[#f3f4f6] transition-colors last:border-0 hover:bg-[#f9fafb]"
+                >
                   <td className="py-3 pr-4 font-medium text-[#101828]">{user.name}</td>
                   <td className="py-3 pr-4 text-[#6a7282]">{user.email}</td>
                   <td className="py-3 pr-4 text-[#6a7282]">{roleLabels[user.role]}</td>

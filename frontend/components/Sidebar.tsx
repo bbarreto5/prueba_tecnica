@@ -38,7 +38,7 @@ function NavLink({ item }: { item: SidebarNavItem }) {
       aria-current={item.current ? "page" : undefined}
       className={`rounded-[2rem] px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07131b] focus-visible:outline-none ${
         item.current
-          ? "bg-white/10 text-[#ff8b1a]"
+          ? "bg-white/10 text-[#ff8b1a] shadow-[0_0_16px_#ff8b1a26]"
           : "text-[#9cb5c4] hover:bg-white/5 hover:text-white"
       }`}
     >
@@ -71,13 +71,22 @@ function LogoutForm({ action }: { action: (formData: FormData) => Promise<void> 
 export function Sidebar({ navItems, user, logoutAction, ctaLabel }: SidebarProps) {
   return (
     <>
-      <aside className="hidden w-64 shrink-0 flex-col bg-[#07131b] px-5 py-8 lg:flex">
-        <div className="px-2">
+      <aside className="relative hidden w-64 shrink-0 flex-col overflow-hidden bg-[#07131b] px-5 py-8 lg:flex">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:20px_20px] [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-20 -left-20 h-72 w-72 rounded-full bg-[#09c6b8]/15 blur-3xl"
+        />
+
+        <div className="relative px-2">
           <Brand />
         </div>
 
         <nav
-          className="mt-10 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto"
+          className="relative mt-10 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto"
           aria-label="Navegación principal"
         >
           {navItems.map((item) => (
@@ -85,7 +94,7 @@ export function Sidebar({ navItems, user, logoutAction, ctaLabel }: SidebarProps
           ))}
         </nav>
 
-        <div className="mt-4 flex flex-col gap-3 border-t border-white/10 pt-4">
+        <div className="relative mt-4 flex flex-col gap-3 border-t border-white/10 pt-4">
           {ctaLabel ? <SidebarCta label={ctaLabel} /> : null}
 
           {user ? (

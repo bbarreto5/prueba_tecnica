@@ -28,11 +28,17 @@ export function DashboardLayout({
       <main className="flex-1 bg-white px-4 py-8 sm:px-8 lg:min-h-0 lg:overflow-y-auto lg:px-12">
         <div className="mx-auto flex max-w-6xl flex-col gap-8">
           <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-[#101828]">{title}</h1>
-              {description ? (
-                <p className="mt-1 text-sm text-[#6a7282]">{description}</p>
-              ) : null}
+            <div className="flex gap-3">
+              <span
+                aria-hidden="true"
+                className="mt-1.5 h-6 w-1 shrink-0 rounded-full bg-[#ff8b1a]"
+              />
+              <div>
+                <h1 className="text-2xl font-bold text-[#101828]">{title}</h1>
+                {description ? (
+                  <p className="mt-1 text-sm text-[#6a7282]">{description}</p>
+                ) : null}
+              </div>
             </div>
             {headerActions ? <div className="shrink-0">{headerActions}</div> : null}
           </header>

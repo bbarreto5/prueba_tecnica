@@ -83,7 +83,10 @@ export function RequestTable<T extends RequestSummary>({
               </tr>
             ) : (
               pageItems.map((request) => (
-                <tr key={request.id} className="border-b border-[#f3f4f6] last:border-0">
+                <tr
+                  key={request.id}
+                  className="border-b border-[#f3f4f6] transition-colors last:border-0 hover:bg-[#f9fafb]"
+                >
                   <td className="py-3 pr-4 font-medium text-[#101828]" title={request.id}>
                     {linkToDetail ? (
                       <Link
