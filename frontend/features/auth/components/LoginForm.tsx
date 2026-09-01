@@ -6,14 +6,14 @@ import { loginAction, type LoginFormState } from "../lib/actions";
 const initialState: LoginFormState = {};
 
 const inputClasses =
-  "w-full rounded-[2rem] border border-[#cccccc] bg-white px-4 py-2.5 text-sm text-[#101828] placeholder:text-[#9ca3af] outline-none transition-colors focus:border-[#ff8b1a] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40 disabled:cursor-not-allowed disabled:border-[#e5e5e5] disabled:bg-[#f3f4f6] disabled:text-[#6a7282]";
+  "w-full rounded-[2rem] border border-[#cccccc] bg-white px-4 py-2.5 text-sm text-[#101828] placeholder:text-[#9ca3af] outline-none transition-colors hover:border-[#9ca3af] focus:border-[#ff8b1a] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40 disabled:cursor-not-allowed disabled:border-[#e5e5e5] disabled:bg-[#f3f4f6] disabled:text-[#6a7282] disabled:hover:border-[#e5e5e5]";
 
 export function LoginForm() {
   const [state, formAction, isPending] = useActionState(loginAction, initialState);
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="w-full rounded-[2rem] border border-[#e5e5e5] bg-white p-8 shadow-[0_0_12px_#09c6b81a] sm:p-10">
+    <div className="motion-safe:animate-[fade-slide-up_0.5s_ease-out] w-full rounded-[2rem] border border-[#e5e5e5] bg-white p-8 shadow-[0_0_20px_#09c6b866] sm:p-10">
       <h1 className="text-2xl font-bold text-[#101828]">Iniciar sesión</h1>
       <p className="mt-2 text-sm text-[#6a7282]">
         Introduce tus credenciales para acceder a tu panel.
