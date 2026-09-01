@@ -10,12 +10,15 @@ interface CompanyTableProps {
   onEdit: (company: Company) => void;
 }
 
+const dateFormatter = new Intl.DateTimeFormat("es", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
 function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat("es", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(iso));
+  return dateFormatter.format(new Date(iso));
 }
 
 export function CompanyTable({ companies, onEdit }: CompanyTableProps) {

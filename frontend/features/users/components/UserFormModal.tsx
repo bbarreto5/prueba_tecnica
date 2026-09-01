@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
+import Link from "next/link";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import type { Company } from "@/features/companies/types";
@@ -180,9 +181,9 @@ export function UserFormModal({
             {companiesLoadError ? (
               <p className="rounded-[1.25rem] border border-[#ff6568]/30 bg-[#ff6568]/10 px-4 py-3 text-sm text-[#ff6568]">
                 No pudimos cargar las compañías.{" "}
-                <a href="/admin/users" className="underline">
+                <Link href="/admin/users" className="underline">
                   Recargar la página
-                </a>
+                </Link>
                 .
               </p>
             ) : (

@@ -13,6 +13,8 @@ import { UserFormModal } from "./UserFormModal";
 import { UsersEmptyState } from "./UsersEmptyState";
 import { UserTable } from "./UserTable";
 
+const EMPTY_COMPANIES: Company[] = [];
+
 interface UsersViewProps {
   initialUsers: User[];
   companies?: Company[];
@@ -31,7 +33,7 @@ interface UsersViewProps {
 
 export function UsersView({
   initialUsers,
-  companies = [],
+  companies = EMPTY_COMPANIES,
   companiesLoadError = false,
   assignableRoles,
   showCompanyField = true,

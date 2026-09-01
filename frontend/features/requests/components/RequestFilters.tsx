@@ -25,11 +25,13 @@ function FilterField({
 
 function FilterSelect({
   id,
+  label,
   value,
   onChange,
   options,
 }: {
   id: string;
+  label: string;
   value: string;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
@@ -38,6 +40,7 @@ function FilterSelect({
     <select
       id={id}
       name={id}
+      aria-label={label}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       className={inputClassName}
@@ -112,6 +115,7 @@ export function RequestFilters({
         <FilterField label="Estado" htmlFor="status">
           <FilterSelect
             id="status"
+            label="Estado"
             value={status}
             onChange={(value) => onStatusChange(value as RequestStatus | "all")}
             options={statusOptions}
@@ -121,6 +125,7 @@ export function RequestFilters({
         <FilterField label="Prioridad" htmlFor="priority">
           <FilterSelect
             id="priority"
+            label="Prioridad"
             value={priority}
             onChange={(value) => onPriorityChange(value as RequestPriority | "all")}
             options={priorityOptions}

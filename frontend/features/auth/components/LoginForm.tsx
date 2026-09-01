@@ -38,7 +38,6 @@ export function LoginForm() {
             name="email"
             type="email"
             required
-            autoFocus
             autoComplete="email"
             placeholder="nombre@empresa.com"
             disabled={isPending}

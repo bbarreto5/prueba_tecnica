@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -39,18 +39,6 @@ const toneClasses: Record<
   },
 };
 
-const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-/**
- * Open Modal instances, in open order — lets nested modals (e.g. a detail
- * modal opened from within a list modal) figure out which one is topmost,
- * so Escape/Tab only affect that one instead of every open Modal at once
- * (each instance listens on `document`, so without this a single Escape
- * would close all of them simultaneously).
- */
-const openModalStack: symbol[] = [];
-
 export function Modal({
   isOpen,
   onClose,
@@ -60,8 +48,7 @@ export function Modal({
   tone = "dark",
 }: ModalProps) {
   const toneClass = toneClasses[tone];
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const [token] = useState(() => Symbol("modal"));
+  const dialogRef = useRef<HTMLDialogElement>(null);
   // Kept in a ref (not the effect's dep array) so a parent re-render that
   // recreates `onClose` (a fresh arrow function every render, in every
   // caller) doesn't retrigger the effect below and yank focus mid-interaction.
@@ -73,79 +60,67 @@ export function Modal({
   useEffect(() => {
     if (!isOpen) return;
 
-    openModalStack.push(token);
-
-    const previouslyFocused = document.activeElement as HTMLElement | null;
     const dialog = dialogRef.current;
-    const firstFocusable = dialog?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
-    (firstFocusable ?? dialog)?.focus();
+    if (!dialog) return;
+
+    // Guarded (rather than unconditional) because React StrictMode runs this
+    // effect twice in development without the DOM re-mounting in between.
+    if (!dialog.open) dialog.showModal();
 
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    function handleKeyDown(event: KeyboardEvent) {
-      if (openModalStack[openModalStack.length - 1] !== token) return;
-
-      if (event.key === "Escape") {
-        onCloseRef.current();
-        return;
-      }
-      if (event.key !== "Tab" || !dialog) return;
-
-      const focusable = dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-      if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
+    function handleCancel() {
+      onCloseRef.current();
     }
+    // Bound imperatively (rather than a JSX `onClick`) since a click
+    // anywhere on the dialog's own box — including its ::backdrop, which is
+    // outside the panel's rendered rect — targets the non-interactive
+    // <dialog> element itself; only clicks outside that rect should close it.
+    function handleClick(event: MouseEvent) {
+      const rect = dialog!.getBoundingClientRect();
+      const insidePanel =
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom;
+      if (!insidePanel) onCloseRef.current();
+    }
+    dialog.addEventListener("cancel", handleCancel);
+    dialog.addEventListener("click", handleClick);
 
-    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      const index = openModalStack.indexOf(token);
-      if (index !== -1) openModalStack.splice(index, 1);
+      dialog.removeEventListener("cancel", handleCancel);
+      dialog.removeEventListener("click", handleClick);
       document.body.style.overflow = originalOverflow;
-      previouslyFocused?.focus();
+      // Closing (rather than leaving it open for React to unmount) lets the
+      // browser restore focus to whatever triggered the modal, per the
+      // native <dialog> close behavior.
+      if (dialog.open) dialog.close();
     };
-  }, [isOpen, token]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
-      onClick={onClose}
+    <dialog
+      ref={dialogRef}
+      aria-label={title}
+      className={`fixed inset-x-4 inset-y-0 m-auto max-h-[85vh] w-full ${sizeClasses[size]} flex-col rounded-xl ${toneClass.dialog} p-6 shadow-[0_0_12px_#09c6b840] outline-none backdrop:bg-black/60 open:flex sm:p-8`}
     >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        tabIndex={-1}
-        onClick={(event) => event.stopPropagation()}
-        className={`flex max-h-[85vh] w-full ${sizeClasses[size]} flex-col rounded-xl ${toneClass.dialog} p-6 shadow-[0_0_12px_#09c6b840] outline-none sm:p-8`}
-      >
-        <div className="flex shrink-0 items-center justify-between gap-4">
-          <h2 className={`text-lg font-bold ${toneClass.title}`}>{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar"
-            className={`rounded-full p-1 transition-colors focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/50 focus-visible:outline-none ${toneClass.closeButton}`}
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="mt-6 overflow-y-auto">{children}</div>
+      <div className="flex shrink-0 items-center justify-between gap-4">
+        <h2 className={`text-lg font-bold ${toneClass.title}`}>{title}</h2>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar"
+          className={`rounded-full p-1 transition-colors focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/50 focus-visible:outline-none ${toneClass.closeButton}`}
+        >
+          ✕
+        </button>
       </div>
-    </div>
+
+      <div className="mt-6 overflow-y-auto">{children}</div>
+    </dialog>
   );
 }
