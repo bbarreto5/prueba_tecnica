@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
+import { Toast } from "@/components/Toast";
+import { useToast } from "@/hooks/useToast";
 import type { RequestActionResult } from "../lib/actions";
 
 type ActionKind = "take" | "cancel" | "resolve";
@@ -20,25 +22,34 @@ interface RequestActionsProps {
 
 const ACTION_COPY: Record<
   ActionKind,
-  { title: string; description: string; confirmLabel: string; loadingLabel: string }
+  {
+    title: string;
+    description: string;
+    confirmLabel: string;
+    loadingLabel: string;
+    successMessage: string;
+  }
 > = {
   take: {
     title: "¿Tomar esta solicitud?",
     description: "La solicitud será asignada a ti.",
     confirmLabel: "Tomar solicitud",
     loadingLabel: "Tomando...",
+    successMessage: "Solicitud tomada correctamente.",
   },
   cancel: {
     title: "¿Cancelar solicitud?",
     description: "Esta acción cambiará el estado de la solicitud a “Cancelada”.",
     confirmLabel: "Cancelar solicitud",
     loadingLabel: "Cancelando...",
+    successMessage: "Solicitud cancelada correctamente.",
   },
   resolve: {
     title: "¿Resolver solicitud?",
     description: "La solicitud será marcada como “Resuelta”.",
     confirmLabel: "Resolver solicitud",
     loadingLabel: "Resolviendo...",
+    successMessage: "Solicitud resuelta correctamente.",
   },
 };
 
@@ -55,6 +66,7 @@ export function RequestActions({
   const [confirming, setConfirming] = useState<ActionKind | null>(null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const { message: toast, showToast } = useToast();
 
   if (!canCancel && !canResolve && !canTake) {
     return <p className="text-sm text-[#6a7282]">No hay acciones disponibles para esta solicitud.</p>;
@@ -70,12 +82,14 @@ export function RequestActions({
     if (!confirming) return;
     const action = actionsByKind[confirming];
     if (!action) return;
+    const { successMessage } = ACTION_COPY[confirming];
     setError(null);
 
     startTransition(async () => {
       const result = await action(requestId);
       if (result.ok) {
         setConfirming(null);
+        showToast(successMessage);
         router.refresh();
       } else {
         setError(result.error);
@@ -128,7 +142,7 @@ export function RequestActions({
               type="button"
               onClick={closeDialog}
               disabled={isPending}
-              className="rounded-[2rem] border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-[2rem] border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:border-white/10 disabled:text-[#6a7282] disabled:hover:bg-transparent"
             >
               Volver
             </button>
@@ -138,6 +152,8 @@ export function RequestActions({
           </div>
         </div>
       </Modal>
+
+      {toast ? <Toast message={toast} /> : null}
     </>
   );
 }

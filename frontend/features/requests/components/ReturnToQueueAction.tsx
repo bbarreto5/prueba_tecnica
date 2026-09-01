@@ -4,10 +4,12 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
+import { Toast } from "@/components/Toast";
+import { useToast } from "@/hooks/useToast";
 import type { MessageActionResult, RequestActionResult } from "../lib/actions";
 
 const inputClassName =
-  "rounded-[1.25rem] border border-[#cccccc] bg-white px-4 py-2.5 text-sm text-[#101828] placeholder:text-[#9ca3af] outline-none transition-colors focus:border-[#ff8b1a] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40 disabled:opacity-60";
+  "rounded-[1.25rem] border border-[#cccccc] bg-white px-4 py-2.5 text-sm text-[#101828] placeholder:text-[#9ca3af] outline-none transition-colors focus:border-[#ff8b1a] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40 disabled:cursor-not-allowed disabled:border-[#e5e5e5] disabled:bg-[#f3f4f6] disabled:text-[#6a7282]";
 
 interface ReturnToQueueActionProps {
   requestId: string;
@@ -33,6 +35,7 @@ export function ReturnToQueueAction({
   const [reason, setReason] = useState("");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const { message: toast, showToast } = useToast();
 
   function close() {
     if (isPending) return;
@@ -65,6 +68,7 @@ export function ReturnToQueueAction({
 
       setIsOpen(false);
       setReason("");
+      showToast("Solicitud devuelta a la cola correctamente.");
       router.refresh();
     });
   }
@@ -106,7 +110,7 @@ export function ReturnToQueueAction({
               type="button"
               onClick={close}
               disabled={isPending}
-              className="rounded-[2rem] border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-[2rem] border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:border-white/10 disabled:text-[#6a7282] disabled:hover:bg-transparent"
             >
               Cancelar
             </button>
@@ -116,6 +120,8 @@ export function ReturnToQueueAction({
           </div>
         </div>
       </Modal>
+
+      {toast ? <Toast message={toast} /> : null}
     </>
   );
 }

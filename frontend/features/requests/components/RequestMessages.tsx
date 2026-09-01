@@ -107,7 +107,7 @@ export function RequestMessages({
             onChange={(event) => setContent(event.target.value)}
             disabled={isPending}
             placeholder="Escribe una respuesta..."
-            className="rounded-[1.25rem] border border-[#cccccc] bg-white px-4 py-3 text-sm text-[#101828] placeholder:text-[#9ca3af] outline-none transition-colors focus:border-[#ff8b1a] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40 disabled:opacity-60"
+            className="rounded-[1.25rem] border border-[#cccccc] bg-white px-4 py-3 text-sm text-[#101828] placeholder:text-[#9ca3af] outline-none transition-colors focus:border-[#ff8b1a] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40 disabled:cursor-not-allowed disabled:border-[#e5e5e5] disabled:bg-[#f3f4f6] disabled:text-[#6a7282]"
           />
           <div className="flex justify-end">
             <Button type="submit" variant="primary" disabled={isPending || !content.trim()}>

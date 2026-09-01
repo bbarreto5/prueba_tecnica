@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/Button";
 import { DashboardSection } from "@/components/DashboardSection";
+import { Toast } from "@/components/Toast";
+import { useToast } from "@/hooks/useToast";
 import type { Company } from "@/features/companies/types";
 import type { Role } from "@/types/role";
 import type { UserActionOptions, UserActionResult } from "../lib/actions";
@@ -41,7 +43,7 @@ export function UsersView({
   const [query, setQuery] = useState("");
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const { message: toast, showToast } = useToast();
 
   const companiesById = useMemo(() => {
     const map = new Map<string, string>();
@@ -67,11 +69,6 @@ export function UsersView({
   function openEditModal(user: User) {
     setEditingUser(user);
     setIsModalOpen(true);
-  }
-
-  function showToast(message: string) {
-    setToast(message);
-    setTimeout(() => setToast(null), 4000);
   }
 
   function handleSuccess(user: User, mode: "create" | "edit") {
@@ -136,14 +133,7 @@ export function UsersView({
         updateAction={updateAction}
       />
 
-      {toast ? (
-        <div
-          role="status"
-          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-[2rem] border border-[#e5e5e5] bg-white px-5 py-3 text-sm font-medium text-[#101828] shadow-[0_0_20px_#09c6b866]"
-        >
-          {toast}
-        </div>
-      ) : null}
+      {toast ? <Toast message={toast} /> : null}
     </>
   );
 }

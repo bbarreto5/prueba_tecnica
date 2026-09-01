@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/Button";
 import { DashboardSection } from "@/components/DashboardSection";
+import { Toast } from "@/components/Toast";
+import { useToast } from "@/hooks/useToast";
 import type { CompanyActionResult } from "../lib/actions";
 import type { Company } from "../types";
 import { CompaniesEmptyState } from "./CompaniesEmptyState";
@@ -20,7 +22,7 @@ export function CompanyView({ initialCompanies, createAction, updateAction }: Co
   const [query, setQuery] = useState("");
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const { message: toast, showToast } = useToast();
 
   const filteredCompanies = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -36,11 +38,6 @@ export function CompanyView({ initialCompanies, createAction, updateAction }: Co
   function openEditModal(company: Company) {
     setEditingCompany(company);
     setIsModalOpen(true);
-  }
-
-  function showToast(message: string) {
-    setToast(message);
-    setTimeout(() => setToast(null), 4000);
   }
 
   function handleSuccess(company: Company, mode: "create" | "edit") {
@@ -96,14 +93,7 @@ export function CompanyView({ initialCompanies, createAction, updateAction }: Co
         updateAction={updateAction}
       />
 
-      {toast ? (
-        <div
-          role="status"
-          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-[2rem] border border-[#e5e5e5] bg-white px-5 py-3 text-sm font-medium text-[#101828] shadow-[0_0_20px_#09c6b866]"
-        >
-          {toast}
-        </div>
-      ) : null}
+      {toast ? <Toast message={toast} /> : null}
     </>
   );
 }

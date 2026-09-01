@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/Button";
 import { DashboardSection } from "@/components/DashboardSection";
 import { MetricCard } from "@/components/MetricCard";
+import { Toast } from "@/components/Toast";
+import { useToast } from "@/hooks/useToast";
 import type { RequestActionResult } from "../lib/actions";
 import type { RequestDetail, RequestPriority, RequestStatus } from "../types";
 import { RequestFilters } from "./RequestFilters";
@@ -19,7 +21,7 @@ interface RequestsViewProps {
 export function RequestsView({ initialRequests, createAction }: RequestsViewProps) {
   const [requests, setRequests] = useState(initialRequests);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const { message: toast, showToast } = useToast();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<RequestPriority | "all">("all");
@@ -60,11 +62,6 @@ export function RequestsView({ initialRequests, createAction }: RequestsViewProp
       return matchesSearch && matchesStatus && matchesPriority;
     });
   }, [requests, search, statusFilter, priorityFilter]);
-
-  function showToast(message: string) {
-    setToast(message);
-    setTimeout(() => setToast(null), 4000);
-  }
 
   function handleCreateSuccess(request: RequestDetail) {
     setRequests((current) => [request, ...current]);
@@ -117,14 +114,7 @@ export function RequestsView({ initialRequests, createAction }: RequestsViewProp
         createAction={createAction}
       />
 
-      {toast ? (
-        <div
-          role="status"
-          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-[2rem] border border-[#e5e5e5] bg-white px-5 py-3 text-sm font-medium text-[#101828] shadow-[0_0_20px_#09c6b866]"
-        >
-          {toast}
-        </div>
-      ) : null}
+      {toast ? <Toast message={toast} /> : null}
     </>
   );
 }

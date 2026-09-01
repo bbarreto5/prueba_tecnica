@@ -52,7 +52,7 @@ export function Pagination({
           type="button"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="rounded-full border border-[#cccccc] px-3 py-1.5 text-xs font-semibold text-[#101828] transition-colors hover:bg-[#f3f4f6] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-full border border-[#cccccc] px-3 py-1.5 text-xs font-semibold text-[#101828] transition-colors hover:bg-[#f3f4f6] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-[#e5e5e5] disabled:bg-[#f3f4f6] disabled:text-[#9ca3af] disabled:hover:bg-[#f3f4f6]"
         >
           Anterior
         </button>
@@ -63,7 +63,7 @@ export function Pagination({
           type="button"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= pageCount}
-          className="rounded-full border border-[#cccccc] px-3 py-1.5 text-xs font-semibold text-[#101828] transition-colors hover:bg-[#f3f4f6] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-full border border-[#cccccc] px-3 py-1.5 text-xs font-semibold text-[#101828] transition-colors hover:bg-[#f3f4f6] focus-visible:ring-2 focus-visible:ring-[#ff8b1a]/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-[#e5e5e5] disabled:bg-[#f3f4f6] disabled:text-[#9ca3af] disabled:hover:bg-[#f3f4f6]"
         >
           Siguiente
         </button>
