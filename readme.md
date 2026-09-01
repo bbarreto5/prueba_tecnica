@@ -2,7 +2,7 @@
 
 Sistema de gestión de solicitudes e incidencias desarrollado como prueba técnica. El proyecto permite administrar empresas, usuarios y solicitudes mediante un modelo de acceso por roles (**ADMIN**, **SUPPORT**, **COMPANY** y **USER**), incluyendo asignación de soporte, mensajería, cambios de estado y notificaciones por correo.
 
-> Este repositorio está organizado como un **monorepo**, manteniendo el frontend y el backend en un único proyecto para facilitar el desarrollo y la sincronización entre ambos componentes. <Cite ref={["turn0search0","turn0search3"]}/>
+> Este repositorio está organizado como un **monorepo**, manteniendo el frontend y el backend en un único proyecto para facilitar el desarrollo y la sincronización entre ambos componentes.
 
 ---
 
@@ -65,7 +65,7 @@ El documento con las decisiones de arquitectura, interpretación del producto y 
 
 **Documento de decisiones (Entregable):**
 
-<LinkCard url="https://drive.google.com/file/d/1G41_3-89DKsY54aRb77xpLbR4Cr8nByA/view?usp=sharing" title="Documento de decisiones – Prueba Técnica" subtitle="Google Drive"/>
+[Ver documento de decisiones de la prueba técnica](https://drive.google.com/file/d/1G41_3-89DKsY54aRb77xpLbR4Cr8nByA/view?usp=sharing)
 
 ---
 
