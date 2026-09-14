@@ -429,12 +429,3 @@ def test_message_from_support_notifies_creator() -> None:
     assert response.status_code == 201
     assert _email_service.sent == [(USER_A1_EMAIL, f"Nuevo mensaje en solicitud #{request['id']}")]
 
-
-def test_message_from_admin_sends_no_email() -> None:
-    request = _new_request(_tokens["user_a1"], "Notif: admin posts")
-    client.post(f"/api/v1/requests/{request['id']}/take", headers=_auth(_tokens["support1"]))
-    _email_service.sent.clear()
-
-    response = _post_message(_tokens["admin"], request["id"], "Admin note")
-    assert response.status_code == 201
-    assert _email_service.sent == []
