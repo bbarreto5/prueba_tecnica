@@ -77,3 +77,4 @@ El documento con las decisiones de arquitectura, interpretación del producto y 
 | TypeScript | Python 3.12 |
 | Tailwind CSS | PostgreSQL |
 | Skill UI | JWT + SMTP (Email) |
+
