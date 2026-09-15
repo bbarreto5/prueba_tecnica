@@ -14,5 +14,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy
-        run: docker compose up -d --build
+      - name: Build images
+        run: docker compose build backend frontend migrations
+
+      - name: Start database
+        run: docker compose up -d db
+
+      - name: Run migrations
+        run: docker compose run --rm migrations
+
+      - name: Start application
+        run: docker compose up -d backend frontend
+
+      - name: Smoke test backend
+        run: curl --fail http://localhost:8000/health

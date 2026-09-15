@@ -14,7 +14,7 @@ export function LoginForm() {
 
   return (
     <div className="motion-safe:animate-[fade-slide-up_0.5s_ease-out] w-full rounded-[2rem] border border-[#e5e5e5] bg-white p-8 shadow-[0_0_20px_#09c6b866] sm:p-10">
-      <h1 className="text-2xl font-bold text-[#101828]">Iniciar sesión</h1>
+      <h1 className="text-2xl font-bold text-[#101828]">Iniciar sesión v1</h1>
       <p className="mt-2 text-sm text-[#6a7282]">
         Introduce tus credenciales para acceder a tu panel.
       </p>
