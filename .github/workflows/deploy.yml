@@ -11,19 +11,19 @@ jobs:
     runs-on: self-hosted
 
     env:
-      APP_NAME: ${{ variables.APP_NAME}}
-      ENVIRONMENT: ${{ variables.ENVIRONMENT}}
+      APP_NAME: ${{ vars.APP_NAME}}
+      ENVIRONMENT: ${{ vars.ENVIRONMENT}}
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/pruebaTecnica
       JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-      JWT_ALGORITHM: ${{ variables.JWT_ALGORITHM}}
-      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${{ variables.JWT_ACCESS_TOKEN_EXPIRE_MINUTES}}
-      SMTP_HOST: ${{ variables.SMTP_HOST}}
-      SMTP_PORT: ${{ variables.SMTP_PORT}}
+      JWT_ALGORITHM: ${{ vars.JWT_ALGORITHM}}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${{ vars.JWT_ACCESS_TOKEN_EXPIRE_MINUTES}}
+      SMTP_HOST: ${{ vars.SMTP_HOST}}
+      SMTP_PORT: ${{ vars.SMTP_PORT}}
       SMTP_USER: ${{ secrets.SMTP_USER}}
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD}}
       SMTP_FROM: ${{ secrets.SMTP_FROM}}
-      SMTP_SECURE: ${{ variables.SMTP_SECURE}}
-      NEXT_PUBLIC_API_URL: ${{ variables.NEXT_PUBLIC_API_URL}}
+      SMTP_SECURE: ${{ vars.SMTP_SECURE}}
+      NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL}}
 
     steps:
       - name: Checkout
