@@ -23,6 +23,7 @@ services:
     command: alembic upgrade head
     environment:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/pruebaTecnica
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     depends_on:
       db:
         condition: service_healthy
@@ -34,6 +35,7 @@ services:
     command: python -m app.infrastructure.database.seed
     environment:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/pruebaTecnica
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     depends_on:
       migrations:
         condition: service_completed_successfully
