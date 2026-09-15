@@ -1,0 +1,47 @@
+docker run -d \
+  --name back_prueba_tecnica \
+  -p 8000:8000 \
+  back_prueba_tecnica:latest
+
+-----------------------------
+
+docker network create prueba_tecnica_network
+
+docker network connect prueba_tecnica_network myDB
+
+docker rm -f back_prueba_tecnica
+
+docker run -d \
+  --name back_prueba_tecnica \
+  --network prueba_tecnica_network \
+  -p 8000:8000 \
+  back_prueba_tecnica:latest
+
+docker exec -it back_prueba_tecnica getent hosts myDB
+
+docker exec -it back_prueba_tecnica bash
+
+alembic upgrade head
+
+python -m app.infrastructure.database.seed
+
+-------------------------------
+
+docker build -t front_prueba_tecnica:latest .
+
+docker build --no-cache -t front_prueba_tecnica:latest .
+
+--build-arg NEXT_PUBLIC_API_URL=http://thinkpad.local:8000 \
+
+docker build --no-cache \
+  --build-arg NEXT_PUBLIC_API_URL=http://thinkpad.local:8000 \
+  -t front_prueba_tecnica:latest .
+
+
+docker run -d \
+  --name front_prueba_tecnica \
+  --network prueba_tecnica_network \
+  -p 3000:3000 \
+  front_prueba_tecnica:latest
+
+
