@@ -42,4 +42,14 @@ jobs:
         run: docker compose up -d backend frontend
 
       - name: Smoke test backend
-        run: curl --fail http://localhost:8000/health
+        run: |
+          for i in {1..10}; do
+            if curl --fail http://localhost:8000/health; then
+              exit 0
+            fi
+            echo "Backend not ready, retrying..."
+            sleep 3
+          done
+
+          echo "Backend did not become ready"
+          exit 1
