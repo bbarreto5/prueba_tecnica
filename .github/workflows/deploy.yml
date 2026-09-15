@@ -10,6 +10,9 @@ jobs:
     name: Deploy to ThinkPad
     runs-on: self-hosted
 
+    env:
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
