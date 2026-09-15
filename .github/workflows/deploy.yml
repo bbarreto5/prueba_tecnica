@@ -23,6 +23,7 @@ jobs:
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD}}
       SMTP_FROM: ${{ secrets.SMTP_FROM}}
       SMTP_SECURE: ${{ variables.SMTP_SECURE}}
+      NEXT_PUBLIC_API_URL: ${{ variables.NEXT_PUBLIC_API_URL}}
 
     steps:
       - name: Checkout
