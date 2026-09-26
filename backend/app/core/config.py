@@ -11,7 +11,7 @@ class Settings:
 
     app_name: str = os.getenv(
         "APP_NAME",
-        "Incident & Request Management API",
+        "Incident & Request Management API - Jenkins CD",
     )
 
     environment: str = os.getenv(
