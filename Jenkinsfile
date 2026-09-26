@@ -65,6 +65,27 @@ pipeline {
 	        '''
 	    }
 	}
+
+	stage('Deploy') {
+	    steps {
+	        withCredentials([
+	            string(
+	                credentialsId: 'jwt-secret-key',
+	                variable: 'JWT_SECRET_KEY'
+	            )
+	        ]) {
+	            sh '''
+	                docker compose \
+	                    -f docker-compose.jenkins.yml \
+	                    down
+
+	                docker compose \
+	                    -f docker-compose.jenkins.yml \
+	                    up -d --build
+	            '''
+	        }
+	    }
+	}
     }
 
     post {
