@@ -2,9 +2,15 @@ pipeline {
     agent any
 
     stages {
-        stage('Python 3.12') {
+        stage('Backend Tests') {
             steps {
-                sh 'docker run --rm python:3.12-slim python --version'
+                sh '''
+                    docker run --rm \
+                      -v "$WORKSPACE/backend:/app" \
+                      -w /app \
+                      python:3.12-slim \
+                      sh -c "pip install -r requirements.txt && pytest"
+                '''
             }
         }
     }
