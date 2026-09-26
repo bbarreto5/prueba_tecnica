@@ -10,7 +10,7 @@ pipeline {
 	            git rev-parse --short HEAD
 
 	            echo "Branch:"
-	            git branch --show-current
+	            echo "$GIT_BRANCH"
 	        '''
 	    }
 	}
