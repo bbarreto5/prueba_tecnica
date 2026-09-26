@@ -2,9 +2,11 @@ pipeline {
     agent any
 
     stages {
-        stage('Test Jenkins') {
+        stage('Environment') {
             steps {
-                echo 'Jenkins está funcionando correctamente'
+                sh 'python3 --version'
+                sh 'node --version'
+                sh 'docker --version'
             }
         }
     }
