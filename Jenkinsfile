@@ -39,6 +39,18 @@ pipeline {
                 '''
             }
         }
+
+	stage('Frontend Lint & Build') {
+	    steps {
+	        sh '''
+	            docker run --rm \
+	                -v "$WORKSPACE/frontend:/app" \
+	                -w /app \
+	                node:22-alpine \
+	                sh -c "npm ci && npm run lint && npm run build"
+	        '''
+	    }
+	}
     }
 
     post {
