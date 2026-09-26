@@ -2,11 +2,9 @@ pipeline {
     agent any
 
     stages {
-        stage('Environment') {
+        stage('Python 3.12') {
             steps {
-                sh 'python3 --version'
-                sh 'node --version'
-                sh 'docker --version'
+                sh 'docker run --rm python:3.12-slim python --version'
             }
         }
     }
