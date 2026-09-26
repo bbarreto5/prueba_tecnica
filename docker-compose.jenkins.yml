@@ -38,7 +38,7 @@ services:
     build:
       context: ./backend
     environment:
-      APP_NAME: ${APP_NAME:-Incident & Request Management API}
+      # APP_NAME se utiliza el valor por defecto de la aplicación  APP_NAME: ${APP_NAME:-Incident & Request Management API}
       ENVIRONMENT: ${ENVIRONMENT:-production}
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/pruebaTecnica
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
