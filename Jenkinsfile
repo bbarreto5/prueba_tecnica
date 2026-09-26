@@ -2,6 +2,20 @@ pipeline {
     agent any
 
     stages {
+
+	stage('Verify Source') {
+	    steps {
+	        sh '''
+	            echo "Commit:"
+	            git rev-parse --short HEAD
+
+	            echo "Branch:"
+	            git branch --show-current
+	        '''
+	    }
+	}
+
+
         stage('Build Backend Image') {
             steps {
                 sh '''
