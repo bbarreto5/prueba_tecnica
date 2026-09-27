@@ -11,6 +11,11 @@ pipeline {
 
     stages {
         stage('Verify Source') {
+            when {
+                expression {
+                    return !params.DEPLOY_VERSION
+                }
+            }
             steps {
                 sh '''
                     echo "Commit:"
@@ -23,6 +28,11 @@ pipeline {
         }
 
         stage('Build & Tag Backend Image') {
+            when {
+                expression {
+                    return !params.DEPLOY_VERSION
+                }
+            }
             steps {
                 sh '''
                     IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
@@ -36,6 +46,11 @@ pipeline {
         }
 
         stage('Backend Tests') {
+            when {
+                expression {
+                    return !params.DEPLOY_VERSION
+                }
+            }
             steps {
                 sh '''
                     docker network create jenkins-ci || true
@@ -68,6 +83,11 @@ pipeline {
         }
 
         stage('Build & Tag Frontend Image') {
+            when {
+                expression {
+                    return !params.DEPLOY_VERSION
+                }
+            }
             steps {
                 sh '''
                     IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${GIT_COMMIT}"
@@ -84,6 +104,11 @@ pipeline {
         }
 
         stage('Frontend Lint') {
+            when {
+                expression {
+                    return !params.DEPLOY_VERSION
+                }
+            }
             steps {
                 sh '''
                     docker run --rm \
@@ -114,6 +139,11 @@ pipeline {
         }
 
         stage('Push Backend Image') {
+            when {
+                expression {
+                    return !params.DEPLOY_VERSION
+                }
+            }
             steps {
                sh '''
                     BACKEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
@@ -123,6 +153,11 @@ pipeline {
         }
 
         stage('Push Frontend Image') {
+            when {
+                expression {
+                    return !params.DEPLOY_VERSION
+                }
+            }
             steps {
                 sh '''
                     FRONTEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${GIT_COMMIT}"
@@ -140,29 +175,33 @@ pipeline {
                 )
             ]) {
                     sh '''
-                    DEPLOY_VERSION="${DEPLOY_VERSION:-$GIT_COMMIT}"
+                        DEPLOY_VERSION="${DEPLOY_VERSION:-$GIT_COMMIT}"
 
-                    BACKEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${DEPLOY_VERSION}"
-                    export BACKEND_IMAGE
+                        BACKEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${DEPLOY_VERSION}"
+                        export BACKEND_IMAGE
 
-                    FRONTEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${DEPLOY_VERSION}"
-                    export FRONTEND_IMAGE
+                        FRONTEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${DEPLOY_VERSION}"
+                        export FRONTEND_IMAGE
 
-                    echo "Deploying version: $DEPLOY_VERSION"
+                        echo "Deploying version: $DEPLOY_VERSION"
 
-                    docker compose \
-                        -f docker-compose.jenkins.yml \
-                        down
+                        # TODO: In a production environment, consider removing
+                        # 'docker compose down' to reduce deployment downtime.
+                        # 'docker compose pull' + 'up -d' can allow Docker Compose
+                        # to recreate only the services whose image changed.
+                        docker compose \
+                            -f docker-compose.jenkins.yml \
+                            down
 
-                    docker compose \
-                        -f docker-compose.jenkins.yml \
-                        pull
+                        docker compose \
+                            -f docker-compose.jenkins.yml \
+                            pull
 
-                    docker compose \
-                        -f docker-compose.jenkins.yml \
-                        up -d
-                '''
-            }
+                        docker compose \
+                            -f docker-compose.jenkins.yml \
+                            up -d
+                    '''
+                }
             }
         }
     }
@@ -175,6 +214,3 @@ pipeline {
         }
     }
 }
-
-
-
