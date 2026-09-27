@@ -87,7 +87,7 @@ pipeline {
             }
         }
 
-        stage('Push Backend Image') {
+        stage('GHCR Login') {
             steps {
                 withCredentials([
                     usernamePassword(
@@ -96,38 +96,30 @@ pipeline {
                         passwordVariable: 'GHCR_TOKEN'
                     )
                 ]) {
-                            sh '''
-                        IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
-
+                    sh '''
                         echo "$GHCR_TOKEN" | docker login ghcr.io \
                             -u "$GHCR_USER" \
                             --password-stdin
-
-                        docker push "$IMAGE"
                     '''
                 }
             }
         }
 
+        stage('Push Backend Image') {
+            steps {
+               sh '''
+                    BACKEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
+                    docker push "$BACKEND_IMAGE"
+                '''
+            }
+        }
+
         stage('Push Frontend Image') {
             steps {
-                withCredentials([
-                        usernamePassword(
-                            credentialsId: 'github-ghcr',
-                            usernameVariable: 'GHCR_USER',
-                            passwordVariable: 'GHCR_TOKEN'
-                        )
-                    ]) {
-                        sh '''
-                            FRONTEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${GIT_COMMIT}"
-
-                            echo "$GHCR_TOKEN" | docker login ghcr.io \
-                                -u "$GHCR_USER" \
-                                --password-stdin
-
-                            docker push "$FRONTEND_IMAGE"
-                        '''
-                    }
+                sh '''
+                    FRONTEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${GIT_COMMIT}"
+                    docker push "$FRONTEND_IMAGE"
+                '''
             }
         }
 
