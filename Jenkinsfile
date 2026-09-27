@@ -45,6 +45,28 @@ pipeline {
             }
         }
 
+        stage('Push Backend Image') {
+            steps {
+                withCredentials([
+            usernamePassword(
+                credentialsId: 'github-ghcr',
+                usernameVariable: 'GHCR_USER',
+                passwordVariable: 'GHCR_TOKEN'
+            )
+        ]) {
+                    sh '''
+                IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
+
+                echo "$GHCR_TOKEN" | docker login ghcr.io \
+                    -u "$GHCR_USER" \
+                    --password-stdin
+
+                docker push "$IMAGE"
+            '''
+        }
+            }
+        }
+
         stage('Backend Tests') {
             steps {
                 sh '''
