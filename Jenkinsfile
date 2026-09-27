@@ -99,6 +99,44 @@ pipeline {
             }
         }
 
+        stage('Build & Tag Frontend Image') {
+            steps {
+                sh '''
+                IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${GIT_COMMIT}"
+
+                docker build \
+                    --build-arg NEXT_PUBLIC_API_URL="http://thinkpad.local:8000" \
+                    -t "$IMAGE" \
+                    ./frontend
+
+                echo "Image created:"
+                docker images "$IMAGE"
+        '''
+            }
+        }
+
+        stage('Push Frontend Image') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'github-ghcr',
+                        usernameVariable: 'GHCR_USER',
+                        passwordVariable: 'GHCR_TOKEN'
+                    )
+                ]) {
+                            sh '''
+                        FRONTEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${GIT_COMMIT}"
+
+                        echo "$GHCR_TOKEN" | docker login ghcr.io \
+                            -u "$GHCR_USER" \
+                            --password-stdin
+
+                        docker push "$FRONTEND_IMAGE"
+                    '''
+                }
+            }
+        }
+
         stage('Frontend Lint & Build') {
             steps {
                 sh '''
@@ -122,6 +160,9 @@ pipeline {
                     sh '''
                     BACKEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
                     export BACKEND_IMAGE
+
+                    FRONTEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${GIT_COMMIT}"
+                    export FRONTEND_IMAGE
 
                     docker compose \
                         -f docker-compose.jenkins.yml \
