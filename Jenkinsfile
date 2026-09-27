@@ -32,11 +32,16 @@ pipeline {
             }
         }
 
-        stage('Build Backend Image') {
+        stage('Build & Tag Backend Image') {
             steps {
                 sh '''
-                    docker build -t prueba-tecnica-backend ./backend
-                '''
+            IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
+
+            docker build -t "$IMAGE" ./backend
+
+            echo "Image created:"
+            docker images "$IMAGE"
+        '''
             }
         }
 
