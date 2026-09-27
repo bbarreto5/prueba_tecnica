@@ -5,65 +5,25 @@ pipeline {
         stage('Verify Source') {
             steps {
                 sh '''
-                echo "Commit:"
-                git rev-parse --short HEAD
+                    echo "Commit:"
+                    git rev-parse --short HEAD
 
-                echo "Branch:"
-                echo "$GIT_BRANCH"
-            '''
-            }
-        }
-
-        stage('Test GHCR Login') {
-            steps {
-                withCredentials([
-            usernamePassword(
-                credentialsId: 'github-ghcr',
-                usernameVariable: 'GHCR_USER',
-                passwordVariable: 'GHCR_TOKEN'
-            )
-        ]) {
-                    sh '''
-                echo "$GHCR_TOKEN" | docker login ghcr.io \
-                    -u "$GHCR_USER" \
-                    --password-stdin
-            '''
-        }
+                    echo "Branch:"
+                    echo "$GIT_BRANCH"
+                '''
             }
         }
 
         stage('Build & Tag Backend Image') {
             steps {
                 sh '''
-            IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
+                    IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
 
-            docker build -t "$IMAGE" ./backend
+                    docker build -t "$IMAGE" ./backend
 
-            echo "Image created:"
-            docker images "$IMAGE"
-        '''
-            }
-        }
-
-        stage('Push Backend Image') {
-            steps {
-                withCredentials([
-            usernamePassword(
-                credentialsId: 'github-ghcr',
-                usernameVariable: 'GHCR_USER',
-                passwordVariable: 'GHCR_TOKEN'
-            )
-        ]) {
-                    sh '''
-                IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
-
-                echo "$GHCR_TOKEN" | docker login ghcr.io \
-                    -u "$GHCR_USER" \
-                    --password-stdin
-
-                docker push "$IMAGE"
-            '''
-        }
+                    echo "Image created:"
+                    docker images "$IMAGE"
+                '''
             }
         }
 
@@ -102,20 +62,32 @@ pipeline {
         stage('Build & Tag Frontend Image') {
             steps {
                 sh '''
-                IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${GIT_COMMIT}"
+                    IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${GIT_COMMIT}"
 
-                docker build \
-                    --build-arg NEXT_PUBLIC_API_URL="http://thinkpad.local:8000" \
-                    -t "$IMAGE" \
-                    ./frontend
+                    docker build \
+                        --build-arg NEXT_PUBLIC_API_URL="http://thinkpad.local:8000" \
+                        -t "$IMAGE" \
+                        ./frontend
 
-                echo "Image created:"
-                docker images "$IMAGE"
-        '''
+                    echo "Image created:"
+                    docker images "$IMAGE"
+                '''
             }
         }
 
-        stage('Push Frontend Image') {
+        stage('Frontend Lint') {
+            steps {
+                sh '''
+                    docker run --rm \
+                        -v "$WORKSPACE/frontend:/app" \
+                        -w /app \
+                        node:22-alpine \
+                        sh -c "npm ci && npm run lint"
+                '''
+            }
+        }
+
+        stage('Push Backend Image') {
             steps {
                 withCredentials([
                     usernamePassword(
@@ -125,27 +97,37 @@ pipeline {
                     )
                 ]) {
                             sh '''
-                        FRONTEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${GIT_COMMIT}"
+                        IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
 
                         echo "$GHCR_TOKEN" | docker login ghcr.io \
                             -u "$GHCR_USER" \
                             --password-stdin
 
-                        docker push "$FRONTEND_IMAGE"
+                        docker push "$IMAGE"
                     '''
                 }
             }
         }
 
-        stage('Frontend Lint') {
+        stage('Push Frontend Image') {
             steps {
-                sh '''
-                docker run --rm \
-                    -v "$WORKSPACE/frontend:/app" \
-                    -w /app \
-                    node:22-alpine \
-                    sh -c "npm ci && npm run lint"
-            '''
+                withCredentials([
+                        usernamePassword(
+                            credentialsId: 'github-ghcr',
+                            usernameVariable: 'GHCR_USER',
+                            passwordVariable: 'GHCR_TOKEN'
+                        )
+                    ]) {
+                        sh '''
+                            FRONTEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${GIT_COMMIT}"
+
+                            echo "$GHCR_TOKEN" | docker login ghcr.io \
+                                -u "$GHCR_USER" \
+                                --password-stdin
+
+                            docker push "$FRONTEND_IMAGE"
+                        '''
+                    }
             }
         }
 
