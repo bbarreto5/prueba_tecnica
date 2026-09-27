@@ -2,19 +2,35 @@ pipeline {
     agent any
 
     stages {
+        stage('Verify Source') {
+            steps {
+                sh '''
+                echo "Commit:"
+                git rev-parse --short HEAD
 
-	stage('Verify Source') {
-	    steps {
-	        sh '''
-	            echo "Commit:"
-	            git rev-parse --short HEAD
+                echo "Branch:"
+                echo "$GIT_BRANCH"
+            '''
+            }
+        }
 
-	            echo "Branch:"
-	            echo "$GIT_BRANCH"
-	        '''
-	    }
-	}
-
+        stage('Test GHCR Login') {
+            steps {
+                withCredentials([
+            usernamePassword(
+                credentialsId: 'github-ghcr',
+                usernameVariable: 'GHCR_USER',
+                passwordVariable: 'GHCR_TOKEN'
+            )
+        ]) {
+                    sh '''
+                echo "$GHCR_TOKEN" | docker login ghcr.io \
+                    -u "$GHCR_USER" \
+                    --password-stdin
+            '''
+        }
+            }
+        }
 
         stage('Build Backend Image') {
             steps {
@@ -54,38 +70,38 @@ pipeline {
             }
         }
 
-	stage('Frontend Lint & Build') {
-	    steps {
-	        sh '''
-	            docker run --rm \
-	                -v "$WORKSPACE/frontend:/app" \
-	                -w /app \
-	                node:22-alpine \
-	                sh -c "npm ci && npm run lint && npm run build"
-	        '''
-	    }
-	}
+        stage('Frontend Lint & Build') {
+            steps {
+                sh '''
+                docker run --rm \
+                    -v "$WORKSPACE/frontend:/app" \
+                    -w /app \
+                    node:22-alpine \
+                    sh -c "npm ci && npm run lint && npm run build"
+            '''
+            }
+        }
 
-	stage('Deploy') {
-	    steps {
-	        withCredentials([
-	            string(
-	                credentialsId: 'jwt-secret-key',
-	                variable: 'JWT_SECRET_KEY'
-	            )
-	        ]) {
-	            sh '''
-	                docker compose \
-	                    -f docker-compose.jenkins.yml \
-	                    down
+        stage('Deploy') {
+            steps {
+                withCredentials([
+                string(
+                    credentialsId: 'jwt-secret-key',
+                    variable: 'JWT_SECRET_KEY'
+                )
+            ]) {
+                    sh '''
+                    docker compose \
+                        -f docker-compose.jenkins.yml \
+                        down
 
-	                docker compose \
-	                    -f docker-compose.jenkins.yml \
-	                    up -d --build
-	            '''
-	        }
-	    }
-	}
+                    docker compose \
+                        -f docker-compose.jenkins.yml \
+                        up -d --build
+                '''
+            }
+            }
+        }
     }
 
     post {
