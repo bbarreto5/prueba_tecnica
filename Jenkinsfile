@@ -84,6 +84,8 @@ pipeline {
                         sleep 1
                     done
 
+                    IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
+
                     docker run --rm \
                         --network jenkins-ci \
                         -e DATABASE_URL="postgresql+psycopg://postgres:postgres@jenkins-postgres:5432/incidents_test" \
@@ -91,7 +93,7 @@ pipeline {
                         -e JWT_SECRET_KEY="test-secret-key" \
                         -e JWT_ALGORITHM="HS256" \
                         -e JWT_ACCESS_TOKEN_EXPIRE_MINUTES="60" \
-                        prueba-tecnica-backend \
+                        "$IMAGE" \
                         pytest
                 '''
             }
@@ -121,10 +123,18 @@ pipeline {
                     docker compose \
                         -f docker-compose.jenkins.yml \
                         down
+                    
+                    BACKEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
+
+                    export BACKEND_IMAGE
 
                     docker compose \
                         -f docker-compose.jenkins.yml \
-                        up -d --build
+                        pull
+
+                    docker compose \
+                        -f docker-compose.jenkins.yml \
+                        up -d
                 '''
             }
             }
