@@ -120,13 +120,12 @@ pipeline {
                 )
             ]) {
                     sh '''
+                    BACKEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
+                    export BACKEND_IMAGE
+
                     docker compose \
                         -f docker-compose.jenkins.yml \
                         down
-                    
-                    BACKEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
-
-                    export BACKEND_IMAGE
 
                     docker compose \
                         -f docker-compose.jenkins.yml \
