@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    parameters {
+        string(
+            name: 'DEPLOY_VERSION',
+            defaultValue: '',
+            description: 'Docker image tag to deploy. Leave empty to deploy the current Git commit.'
+        )
+    }
+
     stages {
         stage('Verify Source') {
             steps {
@@ -132,11 +140,15 @@ pipeline {
                 )
             ]) {
                     sh '''
-                    BACKEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${GIT_COMMIT}"
+                    DEPLOY_VERSION="${DEPLOY_VERSION:-$GIT_COMMIT}"
+
+                    BACKEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${DEPLOY_VERSION}"
                     export BACKEND_IMAGE
 
-                    FRONTEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${GIT_COMMIT}"
+                    FRONTEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${DEPLOY_VERSION}"
                     export FRONTEND_IMAGE
+
+                    echo "Deploying version: $DEPLOY_VERSION"
 
                     docker compose \
                         -f docker-compose.jenkins.yml \
