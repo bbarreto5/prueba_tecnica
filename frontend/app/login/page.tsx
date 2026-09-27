@@ -28,7 +28,7 @@ export default async function LoginPage() {
           <span className="flex h-10 w-10 items-center justify-center rounded-[1.25rem] bg-[#ff8b1a] text-lg font-bold text-[#101828] shadow-[0_0_20px_#ff8b1a4d]">
             P
           </span>
-          <span className="text-lg font-bold text-white">Portal Jenkins</span>
+          <span className="text-lg font-bold text-white">Portal Jenkins Push</span>
         </div>
 
         <div className="relative max-w-sm">
