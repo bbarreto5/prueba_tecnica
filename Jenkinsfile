@@ -200,6 +200,14 @@ pipeline {
                         docker compose \
                             -f docker-compose.jenkins.yml \
                             up -d
+
+                        echo "Checking backend..."
+                        curl -f http://localhost:8000/health
+
+                        echo "Checking frontend..."
+                        curl -f -L -o /dev/null http://localhost:3000
+
+                        echo "Deployment successful."
                     '''
                 }
             }
