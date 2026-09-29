@@ -229,12 +229,58 @@ pipeline {
                             return 1
                         }
 
-                        check_health "Backend" "http://localhost:8000/health"
-                        check_health "Frontend" "http://localhost:3000"
+                        DEPLOYMENT_HEALTHY=true
 
-                        echo "Deployment successful."
-                        echo "$DEPLOY_VERSION" > .last_successful_deploy
-                        echo "Saved successful deployment version: $DEPLOY_VERSION" 
+                        check_health "Backend" "http://localhost:8000/health" || DEPLOYMENT_HEALTHY=false
+                        check_health "Frontend" "http://localhost:3000" || DEPLOYMENT_HEALTHY=false
+
+                        if [ "$DEPLOYMENT_HEALTHY" = true ]; then
+                            echo "Deployment successful."
+                            echo "$DEPLOY_VERSION" > .last_successful_deploy
+                            echo "Saved successful deployment version: $DEPLOY_VERSION"
+                        else
+                            echo "Deployment failed health checks."
+
+                            if [ -z "$PREVIOUS_VERSION" ]; then
+                                echo "No previous version available for rollback."
+                                exit 1
+                            fi
+
+                            echo "Rolling back to version: $PREVIOUS_VERSION"
+
+                            BACKEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-backend:${PREVIOUS_VERSION}"
+                            export BACKEND_IMAGE
+
+                            FRONTEND_IMAGE="ghcr.io/bbarreto5/prueba_tecnica-frontend:${PREVIOUS_VERSION}"
+                            export FRONTEND_IMAGE
+
+                            docker compose \
+                                -f docker-compose.jenkins.yml \
+                                down
+
+                            docker compose \
+                                -f docker-compose.jenkins.yml \
+                                pull
+
+                            docker compose \
+                                -f docker-compose.jenkins.yml \
+                                up -d
+
+                            echo "Checking rollback..."
+
+                            ROLLBACK_HEALTHY=true
+
+                            check_health "Backend" "http://localhost:8000/health" || ROLLBACK_HEALTHY=false
+                            check_health "Frontend" "http://localhost:3000" || ROLLBACK_HEALTHY=false
+
+                            if [ "$ROLLBACK_HEALTHY" = true ]; then
+                                echo "Rollback successful."
+                            else
+                                echo "Rollback failed."
+                            fi
+                            
+                            exit 1
+                        fi
                     '''
                 }
             }
