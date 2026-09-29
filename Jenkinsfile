@@ -27,6 +27,23 @@ pipeline {
             }
         }
 
+        stage('Test Workspace Persistence') {
+            steps {
+                sh '''
+                    echo "Build: $BUILD_NUMBER"
+
+                    if [ -f .workspace-test ]; then
+                        echo "Archivo encontrado:"
+                        cat .workspace-test
+                    else
+                        echo "Archivo NO encontrado"
+                    fi
+
+                    echo "Build $BUILD_NUMBER" > .workspace-test
+                '''
+            }
+        }
+
         stage('Build & Tag Backend Image') {
             when {
                 expression {
