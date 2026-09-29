@@ -201,13 +201,23 @@ pipeline {
                             -f docker-compose.jenkins.yml \
                             down
 
-                        docker compose \
-                            -f docker-compose.jenkins.yml \
-                            pull
+                        DEPLOYMENT_HEALTHY=true
 
-                        docker compose \
+                        if ! docker compose \
                             -f docker-compose.jenkins.yml \
-                            up -d
+                            pull; then
+                            echo "Docker pull failed."
+                            DEPLOYMENT_HEALTHY=false
+                        fi
+
+                        if [ "$DEPLOYMENT_HEALTHY" = true ]; then
+                            if ! docker compose \
+                                -f docker-compose.jenkins.yml \
+                                up -d; then
+                                echo "Docker compose up failed."
+                                DEPLOYMENT_HEALTHY=false
+                            fi
+                        fi
 
                         check_health() {
                             local name="$1"
@@ -229,17 +239,17 @@ pipeline {
                             return 1
                         }
 
-                        DEPLOYMENT_HEALTHY=true
-
-                        check_health "Backend" "http://localhost:8000/health" || DEPLOYMENT_HEALTHY=false
-                        check_health "Frontend" "http://localhost:3000" || DEPLOYMENT_HEALTHY=false
+                        if [ "$DEPLOYMENT_HEALTHY" = true ]; then
+                            check_health "Backend" "http://localhost:8000/health" || DEPLOYMENT_HEALTHY=false
+                            check_health "Frontend" "http://localhost:3000" || DEPLOYMENT_HEALTHY=false
+                        fi
 
                         if [ "$DEPLOYMENT_HEALTHY" = true ]; then
                             echo "Deployment successful."
                             echo "$DEPLOY_VERSION" > .last_successful_deploy
                             echo "Saved successful deployment version: $DEPLOY_VERSION"
                         else
-                            echo "Deployment failed health checks."
+                            echo "Deployment failed. Starting rollback."
 
                             if [ -z "$PREVIOUS_VERSION" ]; then
                                 echo "No previous version available for rollback."
@@ -278,7 +288,7 @@ pipeline {
                             else
                                 echo "Rollback failed."
                             fi
-                            
+
                             exit 1
                         fi
                     '''
