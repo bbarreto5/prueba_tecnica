@@ -27,23 +27,6 @@ pipeline {
             }
         }
 
-        stage('Test Workspace Persistence') {
-            steps {
-                sh '''
-                    echo "Build: $BUILD_NUMBER"
-
-                    if [ -f .workspace-test ]; then
-                        echo "Archivo encontrado:"
-                        cat .workspace-test
-                    else
-                        echo "Archivo NO encontrado"
-                    fi
-
-                    echo "Build $BUILD_NUMBER" > .workspace-test
-                '''
-            }
-        }
-
         stage('Build & Tag Backend Image') {
             when {
                 expression {
@@ -202,6 +185,14 @@ pipeline {
 
                         echo "Deploying version: $DEPLOY_VERSION"
 
+                        if [ -f .last_successful_deploy ]; then
+                            PREVIOUS_VERSION=$(cat .last_successful_deploy)
+                            echo "Previous deployed version: $PREVIOUS_VERSION"
+                        else
+                            PREVIOUS_VERSION=""
+                            echo "No previous deployed version found."
+                        fi
+
                         # TODO: In a production environment, consider removing
                         # 'docker compose down' to reduce deployment downtime.
                         # 'docker compose pull' + 'up -d' can allow Docker Compose
@@ -242,6 +233,8 @@ pipeline {
                         check_health "Frontend" "http://localhost:3000"
 
                         echo "Deployment successful."
+                        echo "$DEPLOY_VERSION" > .last_successful_deploy
+                        echo "Saved successful deployment version: $DEPLOY_VERSION" 
                     '''
                 }
             }
