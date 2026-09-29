@@ -201,11 +201,28 @@ pipeline {
                             -f docker-compose.jenkins.yml \
                             up -d
 
-                        echo "Checking backend..."
-                        curl -f http://localhost:8000/health
+                        check_health() {
+                            local name="$1"
+                            local url="$2"
 
-                        echo "Checking frontend..."
-                        curl -f -L -o /dev/null http://localhost:3000
+                            echo "Checking $name..."
+
+                            for i in $(seq 1 10); do
+                                if curl -f -s -L "$url" > /dev/null; then
+                                    echo "$name is healthy."
+                                    return 0
+                                fi
+
+                                echo "$name not ready. Attempt $i/10..."
+                                sleep 2
+                            done
+
+                            echo "$name health check failed."
+                            return 1
+                        }
+
+                        check_health "Backend" "http://localhost:8000/health"
+                        check_health "Frontend" "http://localhost:3000"
 
                         echo "Deployment successful."
                     '''
